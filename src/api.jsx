@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:5000", // replace with your backend
+  baseURL: "https://kara-8bl6.vercel.app", // replace with your backend
 });
 
 // Attach token automatically
