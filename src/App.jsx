@@ -16,6 +16,7 @@ import Auth from "./Auth";
 // import UserPanel from "./UserPanel";
 import AdminPanel from "./AdminPanel";
 import API from "./api";
+import UserPanel from "./Userpanel";
 
 export default function App() {
   const [user, setUser] = useState(null);
