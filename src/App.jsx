@@ -13,7 +13,7 @@
 import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Auth from "./Auth";
-import UserPanel from "./UserPanel";
+// import UserPanel from "./UserPanel";
 import AdminPanel from "./AdminPanel";
 import API from "./api";
 

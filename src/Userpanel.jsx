@@ -361,7 +361,7 @@ export default function UserPanel() {
           <Route path="/checkout" element={<CheckoutView />} />
           <Route path="/product/:id" element={<ProductView />} />
         </Routes>
-        <Footer/>
+        <Footer />
       </Router>
     </AppContext.Provider>
   );
@@ -370,49 +370,79 @@ export default function UserPanel() {
 function Header() {
   const navigate = useNavigate();
   const { cart, logout } = useContext(AppContext);
+  const [searchQuery, setSearchQuery] = useState("");
 
   return (
-    <header className="shadow-header sticky top-0 z-50 bg-white">
+    <header className="sticky top-0 z-50 bg-[#2874F0] shadow-lg">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between h-14 gap-4">
-          <div className="flex flex-col items-start flex-shrink-0">
-            <img src={full_logo} alt="" className="block md:hidden rounded-full w-20" /> {/* Original logo for small screens */}
-            <img src={text_logo} alt="" className="hidden md:block" /> {/* Second/different logo for md and up */}
+        <div className="flex items-center justify-between h-16 gap-6">
+          {/* Logo */}
+          <div className="flex items-center flex-shrink-0 cursor-pointer" onClick={() => navigate("/")}>
+            <img src={full_logo} alt="Logo" className="block md:hidden rounded-lg w-12 h-12 bg-white p-1" />
+            <img src={text_logo} alt="Logo" className="hidden md:block h-8" />
           </div>
-          <div className="flex-1 max-w-xl">
-            {/* <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-primary" />
+
+          {/* Search Bar */}
+          <div className="flex-1 max-w-2xl hidden md:block">
+            <div className="relative">
               <input
                 type="text"
                 placeholder="Search for products, brands and more"
-                className="w-full pl-10 pr-4 py-2 rounded-sm bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-4 pr-12 py-2.5 rounded-sm text-sm text-gray-800 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50"
               />
-            </div> */}
+              <button className="absolute right-0 top-0 h-full px-4 bg-white hover:bg-gray-50 transition-colors">
+                <Search className="w-5 h-5 text-[#2874F0]" />
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
+
+          {/* Navigation */}
+          <div className="flex items-center gap-1">
             <button
               onClick={() => navigate("/profile")}
-              className="flex items-center gap-1.5 px-4 py-1.5 text-primary-foreground hover:bg-primary-foreground/10 rounded-sm transition-colors"
+              className="flex items-center gap-1.5 px-3 md:px-4 py-2 text-white hover:bg-white/10 rounded transition-colors group"
             >
               <User className="w-4 h-4" />
-              <span className="text-sm font-medium hidden sm:inline">Profile</span>
-              <ChevronDown className="w-3 h-3 hidden sm:inline" />
+              <span className="text-sm font-semibold hidden sm:inline">Profile</span>
             </button>
+
             <button
               onClick={() => navigate("/cart")}
-              className="flex items-center gap-1.5 px-4 py-1.5 text-primary-foreground hover:bg-primary-foreground/10 rounded-sm transition-colors relative"
+              className="flex items-center gap-1.5 px-3 md:px-4 py-2 text-white hover:bg-white/10 rounded transition-colors relative group"
             >
               <ShoppingCart className="w-4 h-4" />
-              <span className="text-sm font-medium hidden sm:inline">Cart</span>
+              <span className="text-sm font-semibold hidden sm:inline">Cart</span>
               {cart.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 bg-[#FFE11B] text-[#2874F0] text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-md">
                   {cart.length > 9 ? "9+" : cart.length}
                 </span>
               )}
             </button>
-            <button onClick={logout} className="flex items-center gap-1.5 px-4 py-1.5 text-primary-foreground hover:bg-primary-foreground/10 rounded-sm transition-colors">
+
+            <button
+              onClick={logout}
+              className="flex items-center gap-1.5 px-3 md:px-4 py-2 text-white hover:bg-white/10 rounded transition-colors group"
+            >
               <LogOut className="w-4 h-4" />
-              <span className="text-sm font-medium hidden sm:inline">Logout</span>
+              <span className="text-sm font-semibold hidden sm:inline">Logout</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Search */}
+        <div className="md:hidden pb-3">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search for products..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-4 pr-12 py-2 rounded-sm text-sm text-gray-800 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50"
+            />
+            <button className="absolute right-0 top-0 h-full px-3 bg-white hover:bg-gray-50 transition-colors">
+              <Search className="w-4 h-4 text-[#2874F0]" />
             </button>
           </div>
         </div>
@@ -437,20 +467,20 @@ function ProfileView() {
   } = useContext(AppContext);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-blue-50/30">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+    <div className="min-h-screen bg-gray-100">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
         <button
           onClick={() => navigate("/")}
-          className="group flex items-center gap-2 text-gray-600 hover:text-purple-600 mb-6 transition-all duration-200"
+          className="group flex items-center gap-2 text-[#2874F0] hover:text-[#1557BF] mb-4 transition-colors"
         >
-          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          <span className="text-sm font-medium">Back to Shopping</span>
+          <ArrowLeft className="w-4 h-4" />
+          <span className="text-sm font-semibold">Back to Shopping</span>
         </button>
         {user && (
           <div className="grid lg:grid-cols-3 gap-6">
             {/* Profile Card */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 sticky top-24">
+              <div className="bg-white rounded-sm shadow-md p-6 sticky top-24">
                 <div className="flex flex-col items-center">
                   <div className="relative group">
                     <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-blue-600 rounded-full blur-xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
@@ -487,10 +517,9 @@ function ProfileView() {
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-6">
               {/* Personal Information */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-1 h-8 bg-gradient-to-b from-purple-600 to-blue-600 rounded-full"></div>
-                  <h2 className="text-xl font-bold text-gray-900">Personal Information</h2>
+              <div className="bg-white rounded-sm shadow-md p-6 sm:p-8">
+                <div className="mb-6 pb-4 border-b border-gray-200">
+                  <h2 className="text-lg font-bold text-gray-900">Personal Information</h2>
                 </div>
                 <div className="space-y-5">
                   <div>
@@ -521,15 +550,15 @@ function ProfileView() {
                     />
                   </div>
                   <button
-                    className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-purple-200 hover:scale-105 transition-all duration-200"
+                    className="w-full sm:w-auto px-8 py-2.5 bg-[#FFE11B] hover:bg-[#FFD700] text-gray-900 font-bold rounded-sm shadow-sm transition-all"
                     onClick={updateProfile}
                   >
-                    Save Changes
+                    SAVE CHANGES
                   </button>
                 </div>
               </div>
               {/* Orders Section */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+              <div className="bg-white rounded-sm shadow-md p-6 sm:p-8">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-blue-100 rounded-xl flex items-center justify-center">
                     <Package className="w-5 h-5 text-purple-600" />
@@ -638,19 +667,19 @@ function CartView() {
   const { cart, total, safeMoney, updateQuantity, removeFromCart } = useContext(AppContext);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/20 to-blue-50/20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+    <div className="min-h-screen bg-gray-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         <button
           onClick={() => navigate("/")}
-          className="group flex items-center gap-2 text-gray-600 hover:text-purple-600 mb-6 transition-all duration-200"
+          className="group flex items-center gap-2 text-[#2874F0] hover:text-[#1557BF] mb-4 transition-colors"
         >
-          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          <span className="text-sm font-medium">Continue Shopping</span>
+          <ArrowLeft className="w-4 h-4" />
+          <span className="text-sm font-semibold">Continue Shopping</span>
         </button>
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Left Column - Cart Items */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+          <div className="lg:col-span-2 space-y-4">
+            <div className="bg-white rounded-sm shadow-md p-6 sm:p-8">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-blue-100 rounded-xl flex items-center justify-center">
                   <ShoppingBag className="w-5 h-5 text-purple-600" />
@@ -719,7 +748,7 @@ function CartView() {
           </div>
           {/* Right Column - Price Details */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-24">
+            <div className="bg-white rounded-sm shadow-md p-6 sticky top-24">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-blue-100 rounded-xl flex items-center justify-center">
                   <CreditCard className="w-5 h-5 text-purple-600" />
@@ -751,11 +780,10 @@ function CartView() {
               </div>
               <button
                 onClick={() => navigate("/checkout")}
-                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold text-base py-4 rounded-xl hover:shadow-xl hover:shadow-purple-200 hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2"
+                className="w-full bg-[#FFE11B] hover:bg-[#FFD700] text-gray-900 font-bold text-base py-3.5 rounded-sm shadow-md transition-all flex items-center justify-center gap-2"
                 disabled={cart.length === 0}
               >
-                Place Order
-                <ArrowLeft className="w-5 h-5 rotate-180" />
+                PLACE ORDER
               </button>
               <div className="mt-5 flex items-center justify-center gap-2 text-xs text-gray-500">
                 <Shield className="w-4 h-4 text-green-600" />
@@ -785,8 +813,8 @@ function CheckoutView() {
   } = useContext(AppContext);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/20 to-blue-50/20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+    <div className="min-h-screen bg-gray-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         {/* Progress Steps */}
         <div className="mb-8">
           <div className="flex items-center justify-center gap-2 sm:gap-4 max-w-2xl mx-auto">
@@ -814,15 +842,15 @@ function CheckoutView() {
         </div>
         <button
           onClick={() => navigate("/cart")}
-          className="group flex items-center gap-2 text-gray-600 hover:text-purple-600 mb-6 transition-all duration-200"
+          className="group flex items-center gap-2 text-[#2874F0] hover:text-[#1557BF] mb-4 transition-colors"
         >
-          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          <span className="text-sm font-medium">Back to Cart</span>
+          <ArrowLeft className="w-4 h-4" />
+          <span className="text-sm font-semibold">Back to Cart</span>
         </button>
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Left Column - Address Section */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+          <div className="lg:col-span-2 space-y-4">
+            <div className="bg-white rounded-sm shadow-md p-6 sm:p-8">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-blue-100 rounded-xl flex items-center justify-center">
                   <MapPin className="w-5 h-5 text-purple-600" />
@@ -892,17 +920,17 @@ function CheckoutView() {
                   ))}
                 </div>
                 <button
-                  className="mt-5 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-green-200 hover:scale-105 transition-all duration-200"
+                  className="mt-5 px-6 py-2.5 bg-[#2874F0] hover:bg-[#1557BF] text-white font-bold rounded-sm shadow-md transition-all"
                   onClick={addNewAddress}
                 >
-                  Save Address
+                  SAVE ADDRESS
                 </button>
               </div>
             </div>
           </div>
           {/* Right Column - Order Summary */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-24">
+            <div className="bg-white rounded-sm shadow-md p-6 sticky top-24">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-blue-100 rounded-xl flex items-center justify-center">
                   <CreditCard className="w-5 h-5 text-purple-600" />
@@ -933,11 +961,10 @@ function CheckoutView() {
                 </span>
               </div>
               <button
-                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold text-base py-4 rounded-xl hover:shadow-xl hover:shadow-purple-200 hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2"
+                className="w-full bg-[#FFE11B] hover:bg-[#FFD700] text-gray-900 font-bold text-base py-3.5 rounded-sm shadow-md transition-all flex items-center justify-center gap-2"
                 onClick={startPayment}
               >
-                Continue to Payment
-                <ArrowLeft className="w-5 h-5 rotate-180" />
+                CONTINUE TO PAYMENT
               </button>
               <div className="mt-5 flex items-center justify-center gap-2 text-xs text-gray-500">
                 <Shield className="w-4 h-4 text-green-600" />
@@ -982,19 +1009,19 @@ function ProductView() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/20 to-blue-50/20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+    <div className="min-h-screen bg-gray-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         <button
           onClick={() => navigate("/")}
-          className="group flex items-center gap-2 text-gray-600 hover:text-purple-600 mb-6 transition-all duration-200"
+          className="group flex items-center gap-2 text-[#2874F0] hover:text-[#1557BF] mb-4 transition-colors"
         >
-          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          <span className="text-sm font-medium">Back to Products</span>
+          <ArrowLeft className="w-4 h-4" />
+          <span className="text-sm font-semibold">Back to Products</span>
         </button>
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Left - Images */}
           <div className="space-y-4">
-            <div className="relative w-full h-96 rounded-2xl overflow-hidden shadow-lg group">
+            <div className="relative w-full h-96 rounded-sm overflow-hidden shadow-md group bg-white">
               {productImages.length > 0 ? (
                 <>
                   <div className="flex h-full transition-transform duration-500 ease-out" style={{ transform: `translateX(-${productSlide * 100}%)` }}>
@@ -1043,14 +1070,14 @@ function ProductView() {
             </div>
           </div>
           {/* Right - Details */}
-          <div className="space-y-6">
-            <h1 className="text-3xl font-bold text-gray-900">{product.title}</h1>
+          <div className="space-y-4 bg-white p-6 rounded-sm shadow-md">
+            <h1 className="text-2xl font-semibold text-gray-900">{product.title}</h1>
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1 bg-green-100 text-green-800 px-3 py-1 rounded-full">
-                <Star className="w-4 h-4 fill-current" />
-                <span className="font-semibold">{product.avgRating?.toFixed(1) || "0.0"}</span>
+              <div className="flex items-center gap-1 bg-green-700 text-white px-2 py-1 rounded-sm text-sm font-semibold">
+                <span>{product.avgRating?.toFixed(1) || "4.0"}</span>
+                <Star className="w-3 h-3 fill-white" />
               </div>
-              <span className="text-sm text-gray-600">({product.reviews?.length || 0} ratings)</span>
+              <span className="text-sm text-gray-600 font-medium">{product.reviews?.length || 0} Ratings</span>
             </div>
             <div className="space-y-2">
               <div className="flex items-baseline gap-3">
@@ -1064,22 +1091,22 @@ function ProductView() {
               <h3 className="text-xl font-semibold text-gray-900">Product Details</h3>
               <p className="text-gray-700 leading-relaxed">{product.description || "No description available."}</p>
             </div>
-            <div className="flex gap-4">
+            <div className="flex gap-3">
               {isInCart ? (
                 <button
                   onClick={() => navigate("/cart")}
-                  className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold py-4 rounded-xl hover:shadow-lg hover:shadow-purple-200 transition-all flex items-center justify-center gap-2"
+                  className="flex-1 bg-[#FFE11B] hover:bg-[#FFD700] text-gray-900 font-bold py-3.5 rounded-sm shadow-md transition-all flex items-center justify-center gap-2"
                 >
                   <ShoppingCart className="w-5 h-5" />
-                  Go to Cart
+                  GO TO CART
                 </button>
               ) : (
                 <button
                   onClick={() => addToCart(product)}
-                  className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold py-4 rounded-xl hover:shadow-lg hover:shadow-purple-200 transition-all flex items-center justify-center gap-2"
+                  className="flex-1 bg-[#FFE11B] hover:bg-[#FFD700] text-gray-900 font-bold py-3.5 rounded-sm shadow-md transition-all flex items-center justify-center gap-2"
                 >
                   <ShoppingCart className="w-5 h-5" />
-                  Add to Cart
+                  ADD TO CART
                 </button>
               )}
               <button
@@ -1087,10 +1114,10 @@ function ProductView() {
                   if (!isInCart) addToCart(product);
                   navigate("/checkout");
                 }}
-                className="flex-1 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold py-4 rounded-xl hover:shadow-lg hover:shadow-orange-200 transition-all flex items-center justify-center gap-2"
+                className="flex-1 bg-[#FB641B] hover:bg-[#E55B13] text-white font-bold py-3.5 rounded-sm shadow-md transition-all flex items-center justify-center gap-2"
               >
                 <Lightning className="w-5 h-5" />
-                Buy Now
+                BUY NOW
               </button>
             </div>
           </div>
@@ -1150,10 +1177,10 @@ function HomeView() {
   } = useContext(AppContext);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/20 to-blue-50/20">
-      <main className="max-w-7xl mx-auto p-4 sm:p-6">
+    <div className="min-h-screen bg-gray-100">
+      <main className="max-w-7xl mx-auto p-3 sm:p-4">
         {/* Image Slider */}
-        <div className="relative w-full h-56 sm:h-80 rounded-2xl overflow-hidden shadow-lg mb-8 group">
+        <div className="relative w-full h-48 sm:h-72 rounded-sm overflow-hidden shadow-md mb-4 group bg-white">
           {slides.length > 0 ? (
             <>
               <div className="flex h-full transition-transform duration-500 ease-out" style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
@@ -1165,22 +1192,22 @@ function HomeView() {
               </div>
               <button
                 onClick={goToPrevSlide}
-                className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 hover:bg-white transition-all hover:scale-110"
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/95 rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 hover:bg-white transition-all"
               >
-                <ChevronLeft className="w-6 h-6 text-gray-900" />
+                <ChevronLeft className="w-5 h-5 text-gray-800" />
               </button>
               <button
                 onClick={goToNextSlide}
-                className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 hover:bg-white transition-all hover:scale-110"
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/95 rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 hover:bg-white transition-all"
               >
-                <ChevronRight className="w-6 h-6 text-gray-900" />
+                <ChevronRight className="w-5 h-5 text-gray-800" />
               </button>
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
                 {slides.map((_, idx) => (
                   <button
                     key={idx}
                     onClick={() => setCurrentSlide(idx)}
-                    className={`h-2 rounded-full transition-all ${idx === currentSlide ? "bg-white w-8" : "bg-white/50 w-2 hover:bg-white/70"}`}
+                    className={`h-1.5 rounded-full transition-all ${idx === currentSlide ? "bg-white w-6" : "bg-white/60 w-1.5 hover:bg-white/80"}`}
                   />
                 ))}
               </div>
@@ -1191,17 +1218,18 @@ function HomeView() {
             </div>
           )}
         </div>
+
         {/* Category Buttons */}
-        <div className="mb-6">
-          <div className="flex flex-wrap gap-3">
+        <div className="bg-white rounded-sm shadow-sm mb-4 p-4">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={() => {
                 setSelectedCategory(null);
                 setSelectedSubcategory("");
               }}
-              className={`px-6 py-2.5 rounded-xl font-semibold transition-all ${!selectedCategory
-                ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg shadow-purple-200"
-                : "bg-white text-gray-700 border-2 border-gray-200 hover:border-purple-600"
+              className={`px-5 py-2 rounded-sm font-semibold text-sm transition-all ${!selectedCategory
+                ? "bg-[#2874F0] text-white shadow-md"
+                : "bg-white text-gray-700 border border-gray-300 hover:border-[#2874F0] hover:text-[#2874F0]"
                 }`}
             >
               All Products
@@ -1213,9 +1241,9 @@ function HomeView() {
                   setSelectedCategory(cat);
                   setSelectedSubcategory("");
                 }}
-                className={`px-6 py-2.5 rounded-xl font-semibold transition-all ${selectedCategory?._id === cat._id
-                  ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg shadow-purple-200"
-                  : "bg-white text-gray-700 border-2 border-gray-200 hover:border-purple-600"
+                className={`px-5 py-2 rounded-sm font-semibold text-sm transition-all ${selectedCategory?._id === cat._id
+                  ? "bg-[#2874F0] text-white shadow-md"
+                  : "bg-white text-gray-700 border border-gray-300 hover:border-[#2874F0] hover:text-[#2874F0]"
                   }`}
               >
                 {cat.name}
@@ -1223,15 +1251,16 @@ function HomeView() {
             ))}
           </div>
         </div>
+
         {/* Subcategory Buttons */}
         {subcategories.length > 0 && (
-          <div className="mb-6">
+          <div className="bg-white rounded-sm shadow-sm mb-4 p-3">
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setSelectedSubcategory("")}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${!selectedSubcategory
-                  ? "bg-purple-100 text-purple-700 border-2 border-purple-600"
-                  : "bg-white text-gray-600 border-2 border-gray-200 hover:border-purple-300"
+                className={`px-4 py-1.5 rounded-sm text-xs font-semibold transition-all ${!selectedSubcategory
+                  ? "bg-[#FFE11B] text-gray-900 border border-[#FFE11B]"
+                  : "bg-white text-gray-600 border border-gray-300 hover:border-[#2874F0]"
                   }`}
               >
                 All
@@ -1240,9 +1269,9 @@ function HomeView() {
                 <button
                   key={sub}
                   onClick={() => setSelectedSubcategory(sub)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${selectedSubcategory === sub
-                    ? "bg-purple-100 text-purple-700 border-2 border-purple-600"
-                    : "bg-white text-gray-600 border-2 border-gray-200 hover:border-purple-300"
+                  className={`px-4 py-1.5 rounded-sm text-xs font-semibold transition-all ${selectedSubcategory === sub
+                    ? "bg-[#FFE11B] text-gray-900 border border-[#FFE11B]"
+                    : "bg-white text-gray-600 border border-gray-300 hover:border-[#2874F0]"
                     }`}
                 >
                   {sub}
@@ -1251,57 +1280,59 @@ function HomeView() {
             </div>
           </div>
         )}
+
         {/* Products Section */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-24">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-              <div className="w-1 h-8 bg-gradient-to-b from-purple-600 to-blue-600 rounded-full"></div>
-              Products
+        <div className="bg-white rounded-sm shadow-sm p-4 mb-24">
+          <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
+            <h3 className="text-xl font-bold text-gray-900">
+              Products for You
             </h3>
-            <span className="text-sm font-semibold text-gray-600 bg-gray-100 px-4 py-2 rounded-full">{products.length} items</span>
+            <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-3 py-1.5 rounded-sm">{products.length} items</span>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
             {products.map((product) => (
               <div
                 key={product._id}
-                className="bg-white rounded-xl border-2 border-gray-100 hover:border-purple-600 hover:shadow-xl transition-all duration-300 group cursor-pointer overflow-hidden"
+                className="bg-white border border-gray-200 hover:shadow-lg transition-all duration-200 group cursor-pointer overflow-hidden flex flex-col"
               >
-                <div className="p-4" onClick={() => navigate(`/product/${product._id}`)}>
-                  <div className="relative aspect-square mb-3 overflow-hidden rounded-lg bg-gradient-to-br from-gray-50 to-gray-100">
+                <div className="p-3 flex-1" onClick={() => navigate(`/product/${product._id}`)}>
+                  <div className="relative aspect-square mb-2 overflow-hidden bg-white">
                     {product.images?.length > 0 ? (
                       <img
                         src={product.images[0]}
                         alt={product.title}
-                        className="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-300"
+                        className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-200"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">No Image</div>
+                      <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">No Image</div>
                     )}
-                    <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">23% OFF</div>
+                    <div className="absolute top-1 left-1 bg-green-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-sm shadow">
+                      23% OFF
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <span className="text-xs font-semibold text-purple-600 uppercase tracking-wide">
-                      {product.category?.name || product.category}
-                    </span>
-                    <h4 className="font-semibold text-gray-900 text-sm line-clamp-2 min-h-[2.5rem]">{product.title}</h4>
+                  <div className="space-y-1">
+                    <h4 className="font-medium text-gray-900 text-xs line-clamp-2 min-h-[2rem] leading-tight">{product.title}</h4>
                     <div className="flex items-center gap-1">
-                      <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
-                      <span className="text-xs font-semibold text-gray-900">{product.avgRating?.toFixed(1) || '0.0'}</span>
-                      <span className="text-xs text-gray-500">({product.reviews?.length || 0})</span>
+                      <div className="flex items-center gap-0.5 bg-green-700 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-sm">
+                        <span>{product.avgRating?.toFixed(1) || '4.0'}</span>
+                        <Star className="w-2.5 h-2.5 fill-white" />
+                      </div>
+                      <span className="text-[10px] text-gray-500">({product.reviews?.length || 0})</span>
                     </div>
-                    <div className="flex items-baseline gap-2">
-                      <p className="text-lg font-bold text-gray-900">₹{safeMoney(product.price)}</p>
-                      <span className="text-xs text-gray-400 line-through">₹{safeMoney(product.price * 1.3)}</span>
+                    <div className="flex items-baseline gap-1.5">
+                      <p className="text-base font-bold text-gray-900">₹{safeMoney(product.price)}</p>
+                      <span className="text-[10px] text-gray-400 line-through">₹{safeMoney(product.price * 1.3)}</span>
                     </div>
+                    <p className="text-[10px] text-green-600 font-semibold">Free delivery</p>
                   </div>
                 </div>
-                <div className="px-4 pb-4">
+                <div className="px-3 pb-3">
                   <button
                     onClick={() => addToCart(product)}
-                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold py-2.5 rounded-xl hover:shadow-lg hover:shadow-purple-200 transition-all flex items-center justify-center gap-2"
+                    className="w-full bg-[#FFE11B] hover:bg-[#FFD700] text-gray-900 font-bold py-2 rounded-sm transition-all flex items-center justify-center gap-1.5 shadow-sm"
                   >
-                    <ShoppingCart className="w-4 h-4" />
-                    <span className="text-sm">Add</span>
+                    <ShoppingCart className="w-3.5 h-3.5" />
+                    <span className="text-xs">ADD TO CART</span>
                   </button>
                 </div>
               </div>
