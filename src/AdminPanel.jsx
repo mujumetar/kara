@@ -210,39 +210,24 @@ export default function AdminPanel() {
     }
   };
 
-  const addProduct = async () => {
-    try {
-      const fd = new FormData();
-      fd.append("title", form.title);
-      fd.append("price", form.price);
-      fd.append("category", form.category);
-      fd.append("subcategory", form.subcategory || "");
-      fd.append("description", form.description || "");
-      fd.append("stock", form.stock);
-      if (form.images && form.images.length > 0) {
-        form.images.forEach((image) => fd.append("images", image));
-      }
-      if (editingProductId) {
-        await API.put(`/api/products/${editingProductId}`, fd);
-        setEditingProductId(null);
-      } else {
-        await API.post("/api/products", fd);
-      }
-      setForm({
-        title: "",
-        price: "",
-        category: "",
-        subcategory: "",
-        description: "",
-        stock: "",
-        images: []
-      });
-      setAvailableSubcategories([]);
-      fetchAll();
-    } catch (error) {
-      console.error("Error adding product:", error);
+const uploadToCloudinary = async (file) => {
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("upload_preset", "YOUR_UNSIGNED_PRESET"); // ← important
+  fd.append("folder", "products");
+
+  const res = await fetch(
+    "https://api.cloudinary.com/v1_1/dlzy4t3i3/image/upload",
+    {
+      method: "POST",
+      body: fd,
     }
-  };
+  );
+
+  const data = await res.json();
+  return data.secure_url;
+};
+
 
   const generateDescription = async () => {
     if (!form.title) return alert("Product title is required");
