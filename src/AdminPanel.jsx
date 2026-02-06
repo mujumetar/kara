@@ -228,6 +228,49 @@ const uploadToCloudinary = async (file) => {
   return data.secure_url;
 };
 
+const addProduct = async () => {
+  try {
+    let imageUrls = [];
+
+    if (form.images.length > 0) {
+      imageUrls = await Promise.all(
+        form.images.map((file) => uploadToCloudinary(file))
+      );
+    }
+
+    const payload = {
+      title: form.title,
+      price: form.price,
+      category: form.category,
+      subcategory: form.subcategory,
+      description: form.description,
+      stock: form.stock,
+      images: imageUrls, // ✅ URLs only
+    };
+
+    if (editingProductId) {
+      await API.put(`/api/products/${editingProductId}`, payload);
+      setEditingProductId(null);
+    } else {
+      await API.post("/api/products", payload);
+    }
+
+    setForm({
+      title: "",
+      price: "",
+      category: "",
+      subcategory: "",
+      description: "",
+      stock: "",
+      images: [],
+    });
+
+    fetchAll();
+  } catch (err) {
+    console.error("Error saving product:", err);
+    alert("Failed to save product");
+  }
+};
 
   const generateDescription = async () => {
     if (!form.title) return alert("Product title is required");
