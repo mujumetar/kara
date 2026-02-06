@@ -226,37 +226,53 @@ export default function UserPanel() {
   };
 
   /* ================= PAYMENT ================= */
-  const startPayment = async () => {
-    const total = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-    if (!total) return alert("Cart is empty");
-    try {
-      const orderRes = await API.post("/api/payment/create-order", { amount: total });
-      const options = {
-        key: "rzp_test_RziTV0f7RSbzDC",
-        amount: orderRes.data.amount,
-        currency: "INR",
-        name: "Flipkart Clone",
-        order_id: orderRes.data.id,
-        handler: async (response) => {
-          await API.post("/api/payment/verify", response);
-          await API.post("/api/checkout", {
-            cart,
-            address: addresses[selectedAddress],
-            paymentId: response.razorpay_payment_id,
-          });
-          alert("Order placed successfully!");
-          setCart([]);
-          // Navigate back to home
-          const navigate = useNavigate();
-          navigate("/");
-        },
-        theme: { color: "#2874F0" },
-      };
-      new window.Razorpay(options).open();
-    } catch (err) {
-      console.error("Payment failed", err);
-    }
-  };
+ const startPayment = async () => {
+  if (!cart.length) return alert("Cart is empty");
+
+  try {
+    // 1️⃣ CREATE MONGO ORDER FIRST
+    const checkoutRes = await API.post("/api/checkout", {
+      cart,
+      address: addresses[selectedAddress],
+    });
+
+    const mongoOrderId = checkoutRes.data.orderId; // ✅ IMPORTANT
+
+    // 2️⃣ CREATE RAZORPAY ORDER USING MONGO ORDER ID
+    const razorpayRes = await API.post("/api/payment/create-order", {
+      orderId: mongoOrderId,
+      amount: total,
+    });
+
+    const options = {
+      key: "rzp_test_RziTV0f7RSbzDC",
+      amount: razorpayRes.data.amount,
+      currency: "INR",
+      name: "Kara Store",
+      order_id: razorpayRes.data.id,
+
+      // 3️⃣ VERIFY PAYMENT
+      handler: async (response) => {
+        await API.post("/api/payment/verify", {
+          ...response,
+          orderId: mongoOrderId, // ✅ SAME ID
+        });
+
+        alert("Order placed successfully!");
+        setCart([]);
+        window.location.href = "/";
+      },
+
+      theme: { color: "#2874F0" },
+    };
+
+    new window.Razorpay(options).open();
+  } catch (err) {
+    console.error("Payment failed", err.response?.data || err.message);
+    alert("Payment failed");
+  }
+};
+
 
   const safeMoney = (value) => {
     const num = Number(value);
