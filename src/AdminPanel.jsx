@@ -210,67 +210,39 @@ export default function AdminPanel() {
     }
   };
 
-const uploadToCloudinary = async (file) => {
-  const fd = new FormData();
-  fd.append("file", file);
-  fd.append("upload_preset", "YOUR_UNSIGNED_PRESET"); // ← important
-  fd.append("folder", "products");
-
-  const res = await fetch(
-    "https://api.cloudinary.com/v1_1/dlzy4t3i3/image/upload",
-    {
-      method: "POST",
-      body: fd,
+  const addProduct = async () => {
+    try {
+      const fd = new FormData();
+      fd.append("title", form.title);
+      fd.append("price", form.price);
+      fd.append("category", form.category);
+      fd.append("subcategory", form.subcategory || "");
+      fd.append("description", form.description || "");
+      fd.append("stock", form.stock);
+      if (form.images && form.images.length > 0) {
+        form.images.forEach((image) => fd.append("images", image));
+      }
+      if (editingProductId) {
+        await API.put(`/api/products/${editingProductId}`, fd);
+        setEditingProductId(null);
+      } else {
+        await API.post("/api/products", fd);
+      }
+      setForm({
+        title: "",
+        price: "",
+        category: "",
+        subcategory: "",
+        description: "",
+        stock: "",
+        images: []
+      });
+      setAvailableSubcategories([]);
+      fetchAll();
+    } catch (error) {
+      console.error("Error adding product:", error);
     }
-  );
-
-  const data = await res.json();
-  return data.secure_url;
-};
-
-const addProduct = async () => {
-  try {
-    let imageUrls = [];
-
-    if (form.images.length > 0) {
-      imageUrls = await Promise.all(
-        form.images.map((file) => uploadToCloudinary(file))
-      );
-    }
-
-    const payload = {
-      title: form.title,
-      price: form.price,
-      category: form.category,
-      subcategory: form.subcategory,
-      description: form.description,
-      stock: form.stock,
-      images: imageUrls, // ✅ URLs only
-    };
-
-    if (editingProductId) {
-      await API.put(`/api/products/${editingProductId}`, payload);
-      setEditingProductId(null);
-    } else {
-      await API.post("/api/products", payload);
-    }
-
-    setForm({
-      title: "",
-      price: "",
-      category: "",
-      subcategory: "",
-      description: "",
-      stock: "",
-      images: [],
-    });
-
-    fetchAll();
-  } catch (err) {
-    console.error("Error saving product:", err);
-    alert("Failed to save product");
-  }
-};
+  };
 
   const generateDescription = async () => {
     if (!form.title) return alert("Product title is required");
