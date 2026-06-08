@@ -246,7 +246,7 @@ export default function UserPanel() {
 
     const options = {
       key: "rzp_test_RziTV0f7RSbzDC",
-      amount: razorpayRes.data.amount,
+      amount: razorpayRes.data.amount * 100, // in paise
       currency: "INR",
       name: "Kara Store",
       order_id: razorpayRes.data.id,
@@ -389,7 +389,7 @@ function Header() {
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
-    <header className="sticky top-0 z-50 bg-[#2874F0] shadow-lg">
+    <header className="sticky top-0 bg-white z-50 shadow-lg">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16 gap-6">
           {/* Logo */}
@@ -399,7 +399,7 @@ function Header() {
           </div>
 
           {/* Search Bar */}
-          <div className="flex-1 max-w-2xl hidden md:block">
+          {/* <div className="flex-1 max-w-2xl hidden md:block">
             <div className="relative">
               <input
                 type="text"
@@ -412,13 +412,13 @@ function Header() {
                 <Search className="w-5 h-5 text-[#2874F0]" />
               </button>
             </div>
-          </div>
+          </div> */}
 
           {/* Navigation */}
           <div className="flex items-center gap-1">
             <button
               onClick={() => navigate("/profile")}
-              className="flex items-center gap-1.5 px-3 md:px-4 py-2 text-white hover:bg-white/10 rounded transition-colors group"
+              className="flex items-center gap-1.5 px-3 md:px-4 py-2 hover:bg-white/10 rounded transition-colors group"
             >
               <User className="w-4 h-4" />
               <span className="text-sm font-semibold hidden sm:inline">Profile</span>
@@ -426,7 +426,7 @@ function Header() {
 
             <button
               onClick={() => navigate("/cart")}
-              className="flex items-center gap-1.5 px-3 md:px-4 py-2 text-white hover:bg-white/10 rounded transition-colors relative group"
+              className="flex items-center gap-1.5 px-3 md:px-4 py-2 hover:bg-white/10 rounded transition-colors relative group"
             >
               <ShoppingCart className="w-4 h-4" />
               <span className="text-sm font-semibold hidden sm:inline">Cart</span>
@@ -439,7 +439,7 @@ function Header() {
 
             <button
               onClick={logout}
-              className="flex items-center gap-1.5 px-3 md:px-4 py-2 text-white hover:bg-white/10 rounded transition-colors group"
+              className="flex items-center gap-1.5 px-3 md:px-4 py-2  hover:bg-white/10 rounded transition-colors group"
             >
               <LogOut className="w-4 h-4" />
               <span className="text-sm font-semibold hidden sm:inline">Logout</span>
@@ -448,7 +448,7 @@ function Header() {
         </div>
 
         {/* Mobile Search */}
-        <div className="md:hidden pb-3">
+        {/* <div className="md:hidden pb-3">
           <div className="relative">
             <input
               type="text"
@@ -461,7 +461,7 @@ function Header() {
               <Search className="w-4 h-4 text-[#2874F0]" />
             </button>
           </div>
-        </div>
+        </div> */}
       </div>
     </header>
   );
