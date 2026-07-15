@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import api from "../api";
 import {
   ShoppingCart, Menu, X, ArrowRight, Package, Globe, Zap, Shield,
   Truck, Star, Search, Building2, Users, Award, MapPin, Phone, Mail,
@@ -192,9 +193,9 @@ function HeroSection({ setPage, mode }: { setPage: (p: Page) => void; mode: Mode
   }, []);
 
   const previewCards = [
-    { name: "Wireless Earbuds", price: "$49.99", wholesale: "$18.50", margin: 170, imgId: "1590658268037-6bf12165a8df", top: "4%", left: "8%", rotate: "-7deg", zIndex: 1 },
-    { name: "Smart Watch", price: "$79.99", wholesale: "$28.00", margin: 186, imgId: "1523275335684-37898b6baf30", top: "22%", left: "38%", rotate: "4deg", zIndex: 3 },
-    { name: "Leather Wallet", price: "$34.99", wholesale: "$10.20", margin: 243, imgId: "1627123424574-724758594785", top: "52%", left: "4%", rotate: "-4deg", zIndex: 2 },
+    { name: "Wireless Earbuds", price: "₹49.99", wholesale: "₹18.50", margin: 170, imgId: "1590658268037-6bf12165a8df", top: "4%", left: "8%", rotate: "-7deg", zIndex: 1 },
+    { name: "Smart Watch", price: "₹79.99", wholesale: "₹28.00", margin: 186, imgId: "1523275335684-37898b6baf30", top: "22%", left: "38%", rotate: "4deg", zIndex: 3 },
+    { name: "Leather Wallet", price: "₹34.99", wholesale: "₹10.20", margin: 243, imgId: "1627123424574-724758594785", top: "52%", left: "4%", rotate: "-4deg", zIndex: 2 },
   ];
 
   return (
@@ -441,11 +442,11 @@ function ProductCard({ product, mode, onAddToCart }: { product: Product; mode: M
             {mode === "dropship" ? (
               <div>
                 <p className="text-slate-600 text-[10px] font-medium uppercase tracking-wider">Wholesale</p>
-                <p className="text-blue-400 text-xl font-extrabold leading-none">${product.wholesale.toFixed(2)}</p>
-                <p className="text-slate-600 text-xs mt-0.5">Retail ${product.price.toFixed(2)}</p>
+                <p className="text-blue-400 text-xl font-extrabold leading-none">₹{product.wholesale.toFixed(2)}</p>
+                <p className="text-slate-600 text-xs mt-0.5">Retail ₹{product.price.toFixed(2)}</p>
               </div>
             ) : (
-              <p className="text-orange-400 text-xl font-extrabold">${product.price.toFixed(2)}</p>
+              <p className="text-orange-400 text-xl font-extrabold">₹{product.price.toFixed(2)}</p>
             )}
           </div>
           <button
@@ -466,9 +467,9 @@ function ProductCard({ product, mode, onAddToCart }: { product: Product; mode: M
 
 // ─── Featured Section ─────────────────────────────────────────────────────────
 
-function FeaturedSection({ mode, setPage, onAddToCart }: { mode: Mode; setPage: (p: Page) => void; onAddToCart: () => void }) {
+function FeaturedSection({ mode, setPage, onAddToCart, products }: { mode: Mode; setPage: (p: Page) => void; onAddToCart: () => void; products: Product[] }) {
   const [cat, setCat] = useState("All");
-  const filtered = cat === "All" ? PRODUCTS : PRODUCTS.filter((p) => p.category === cat);
+  const filtered = cat === "All" ? products : products.filter((p) => p.category === cat);
 
   return (
     <section className="py-20 bg-[#06080e]">
@@ -676,12 +677,12 @@ function CTABanner({ setPage }: { setPage: (p: Page) => void }) {
 
 // ─── Products Page ────────────────────────────────────────────────────────────
 
-function ProductsPage({ mode, onAddToCart }: { mode: Mode; onAddToCart: () => void }) {
+function ProductsPage({ mode, onAddToCart, products }: { mode: Mode; onAddToCart: () => void; products: Product[] }) {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [sortBy, setSortBy] = useState("default");
 
-  let filtered = PRODUCTS.filter((p) => {
+  let filtered = products.filter((p) => {
     const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
     const matchCat = category === "All" || p.category === category;
     return matchSearch && matchCat;
@@ -701,7 +702,7 @@ function ProductsPage({ mode, onAddToCart }: { mode: Mode; onAddToCart: () => vo
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white">
             {mode === "dropship" ? "Dropship Catalog" : "Shop All Products"}
           </h1>
-          <p className="text-slate-500 text-sm mt-1.5">{PRODUCTS.length} products available</p>
+          <p className="text-slate-500 text-sm mt-1.5">{products.length} products available</p>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 mb-8 flex-wrap">
@@ -774,7 +775,7 @@ function DropshipPage() {
     },
     {
       name: "Growth",
-      price: "$29",
+      price: "₹29",
       period: "/month",
       desc: "For growing stores",
       features: ["500 products in catalog", "Advanced analytics", "Priority shipping rates", "Live chat support", "Full API access", "Shopify & WooCommerce sync"],
@@ -783,7 +784,7 @@ function DropshipPage() {
     },
     {
       name: "Pro",
-      price: "$79",
+      price: "₹79",
       period: "/month",
       desc: "For serious sellers",
       features: ["Unlimited products", "Full analytics suite", "Express shipping rates", "Dedicated account manager", "Custom white-label packaging", "Bulk order discounts"],
@@ -1186,6 +1187,25 @@ export default function App() {
   const [page, setPage] = useState<Page>("home");
   const [mode, setMode] = useState<Mode>("shop");
   const [cartCount, setCartCount] = useState(0);
+  const [products, setProducts] = useState<Product[]>(PRODUCTS);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const { data } = await api.get("/api/products");
+        if (data && data.length > 0) {
+          setProducts(data.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+        } else {
+          await api.post("/api/seed-products", PRODUCTS);
+          const { data: newData } = await api.get("/api/products");
+          setProducts(newData.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+        }
+      } catch (err) {
+        console.error("Failed to fetch/seed products:", err);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   const handleAddToCart = () => setCartCount((c) => c + 1);
 
@@ -1220,13 +1240,13 @@ export default function App() {
         <>
           <HeroSection setPage={setPage} mode={mode} />
           <StatsBar />
-          <FeaturedSection mode={mode} setPage={setPage} onAddToCart={handleAddToCart} />
+          <FeaturedSection mode={mode} setPage={setPage} onAddToCart={handleAddToCart} products={products} />
           <DropshipSection setPage={setPage} />
           <Testimonials />
           <CTABanner setPage={setPage} />
         </>
       )}
-      {page === "products" && <ProductsPage mode={mode} onAddToCart={handleAddToCart} />}
+      {page === "products" && <ProductsPage mode={mode} onAddToCart={handleAddToCart} products={products} />}
       {page === "dropship" && <DropshipPage />}
       {page === "about" && <AboutPage />}
 
