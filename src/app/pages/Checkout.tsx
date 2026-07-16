@@ -5,7 +5,7 @@ import API from "../../api";
 import { CheckCircle2, Shield, Truck, Lock } from "lucide-react";
 
 export default function Checkout() {
-  const { cart, user, fetchUser } = useAppContext();
+  const { cart, user, fetchUser, setAuthModalOpen } = useAppContext();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [addressIndex, setAddressIndex] = useState(0);
@@ -76,8 +76,14 @@ export default function Checkout() {
 
   if (!user) {
     return (
-      <div className="min-h-screen pt-24 flex items-center justify-center">
-        <p className="text-white text-xl">Please log in to checkout.</p>
+      <div className="min-h-screen pt-24 flex flex-col items-center justify-center">
+        <p className="text-white text-xl mb-6">Please log in to checkout.</p>
+        <button 
+          onClick={() => setAuthModalOpen(true)}
+          className="px-8 py-3 bg-[#00e5ff] text-black font-bold rounded-xl hover:bg-white transition-all shadow-[0_0_20px_rgba(0,229,255,0.3)]"
+        >
+          Sign In / Register
+        </button>
       </div>
     );
   }

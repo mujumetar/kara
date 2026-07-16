@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Trash2, Plus, Minus, ArrowRight, ShoppingBag } from "lucide-react";
 
 export default function Cart() {
-  const { cart, removeFromCart, updateQuantity } = useAppContext();
+  const { cart, removeFromCart, updateQuantity, user, setAuthModalOpen } = useAppContext();
   const navigate = useNavigate();
 
   const subtotal = cart.reduce((acc, item) => {
@@ -84,7 +84,7 @@ export default function Cart() {
                 </div>
               </div>
               <button 
-                onClick={() => navigate("/checkout")}
+                onClick={() => user ? navigate("/checkout") : setAuthModalOpen(true)}
                 className="w-full flex items-center justify-center gap-2 py-3 bg-[#00e5ff] text-black font-semibold rounded-lg hover:bg-white transition-all shadow-[0_0_20px_rgba(0,229,255,0.3)]"
               >
                 Proceed to Checkout <ArrowRight className="w-5 h-5" />

@@ -45,13 +45,14 @@ const HERO_PHRASES = [
 // ─── Navbar ───────────────────────────────────────────────────────────────────
 
 function Navbar({
-  page, setPage, mode, setMode, cartCount,
+  page, setPage, mode, setMode, cartCount, setAuthModalOpen
 }: {
   page: Page;
   setPage: (p: Page) => void;
   mode: Mode;
   setMode: (m: Mode) => void;
   cartCount: number;
+  setAuthModalOpen: (open: boolean) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -123,7 +124,7 @@ function Navbar({
             </button>
           </div>
 
-          <button onClick={() => window.location.href = "/login"} className="text-slate-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/5">
+          <button onClick={() => setAuthModalOpen(true)} className="text-slate-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/5">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-user"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           </button>
           <button onClick={() => window.location.href = "/cart"} className="relative text-slate-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/5">
@@ -1191,13 +1192,13 @@ import { useAppContext } from "../context/AppContext";
 
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
-import Auth from "./pages/Auth";
 import ProductDetails from "./pages/ProductDetails";
+import AuthModal from "./components/AuthModal";
 
 export default function App() {
   const [page, setPage] = useState<Page>("home");
   const [mode, setMode] = useState<Mode>("shop");
-  const { cart, products, fetchProducts } = useAppContext();
+  const { cart, products, fetchProducts, setAuthModalOpen } = useAppContext();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -1240,7 +1241,7 @@ export default function App() {
         ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
       `}</style>
 
-      <Navbar page={page} setPage={handleSetPage} mode={mode} setMode={setMode} cartCount={cartCount} />
+      <Navbar page={page} setPage={handleSetPage} mode={mode} setMode={setMode} cartCount={cartCount} setAuthModalOpen={setAuthModalOpen} />
 
       <Routes>
         <Route path="/" element={
@@ -1259,10 +1260,10 @@ export default function App() {
         
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />
-        <Route path="/login" element={<Auth />} />
         <Route path="/product/:id" element={<ProductDetails />} />
       </Routes>
 
+      <AuthModal />
       <Footer setPage={handleSetPage} />
     </div>
   );

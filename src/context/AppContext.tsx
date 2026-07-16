@@ -38,6 +38,8 @@ interface AppContextType {
   fetchUser: () => Promise<void>;
   fetchCart: () => Promise<void>;
   logout: () => void;
+  isAuthModalOpen: boolean;
+  setAuthModalOpen: (isOpen: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -49,6 +51,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [subcategories, setSubcategories] = useState<any[]>([]);
+  const [isAuthModalOpen, setAuthModalOpen] = useState(false);
 
   const fetchUser = async () => {
     try {
@@ -91,6 +94,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const addToCart = async (product: any, quantity: number = 1) => {
+    if (!user) {
+      setAuthModalOpen(true);
+      return;
+    }
     try {
       const res = await API.post("/api/cart/add", { product, quantity });
       setCart(res.data);
@@ -155,6 +162,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         fetchUser,
         fetchCart,
         logout,
+        isAuthModalOpen,
+        setAuthModalOpen,
       }}
     >
       {children}
