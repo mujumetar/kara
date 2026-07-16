@@ -1186,10 +1186,8 @@ function Footer({ setPage }: { setPage: (p: Page) => void }) {
 }
 
 // ─── App ──────────────────────────────────────────────────────────────────────
-
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
-
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import ProductDetails from "./pages/ProductDetails";
