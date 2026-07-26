@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://kara-8bl6.vercel.app", // replace with your backend
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000",
 });
 
 // Attach token automatically
