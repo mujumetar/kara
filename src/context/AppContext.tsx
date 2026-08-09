@@ -3,8 +3,8 @@ import API from "../api";
 
 export interface Product {
   _id: string;
-  name: string;    // mapped from backend `title`
-  title?: string;  // raw backend field
+  name: string;
+  title?: string;
   description: string;
   price: number;
   wholesalePrice?: number;
@@ -52,7 +52,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [cart, setCart] = useState<any[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
-  const [subcategories, setSubcategories] = useState<any[]>([]);
   const [isAuthModalOpen, setAuthModalOpen] = useState(false);
 
   const fetchUser = async () => {
@@ -70,17 +69,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const fetchCart = async () => {
     try {
       const res = await API.get("/api/cart");
-      setCart(res.data);
-    } catch (err) {
-      console.error("Cart fetch failed", err);
+      setCart(Array.isArray(res.data) ? res.data : []);
+    } catch {
+      setCart([]);
     }
   };
 
-  const fetchProducts = async (filters = {}) => {
+  const fetchProducts = async (filters: any = {}) => {
     try {
       const res = await API.get("/api/products", { params: filters });
-      // Backend uses `title`, frontend uses `name` — normalize here
-      const normalized = res.data.map((p: any) => ({
+      const data = Array.isArray(res.data) ? res.data : [];
+      const normalized = data.map((p: any) => ({
         ...p,
         name: p.name || p.title || "",
         wholesalePrice: p.wholesalePrice ?? undefined,
@@ -95,20 +94,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const fetchCategories = async () => {
     try {
       const res = await API.get("/api/categories");
-      setCategories(res.data);
-    } catch (err) {
-      console.error("Failed to fetch categories", err);
+      setCategories(Array.isArray(res.data) ? res.data : []);
+    } catch {
+      setCategories([]);
     }
   };
 
   const addToCart = async (product: any, quantity: number = 1) => {
-    if (!user) {
-      setAuthModalOpen(true);
-      return;
-    }
+    if (!user) { setAuthModalOpen(true); return; }
     try {
       const res = await API.post("/api/cart/add", { product, quantity });
-      setCart(res.data);
+      setCart(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error("Add to cart failed", err);
     }
@@ -117,7 +113,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const removeFromCart = async (productId: string) => {
     try {
       const res = await API.delete("/api/cart/remove", { data: { productId } });
-      setCart(res.data);
+      setCart(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error("Remove from cart failed", err);
     }
@@ -126,11 +122,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateQuantity = async (productId: string, delta: number) => {
     const item = cart.find((p) => p.productId === productId || p._id === productId);
     if (!item) return;
-    let newQty = item.quantity + delta;
-    if (newQty < 1) newQty = 1;
+    const newQty = Math.max(1, item.quantity + delta);
     try {
       const res = await API.put("/api/cart/update", { productId, quantity: newQty });
-      setCart(res.data);
+      setCart(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error("Update quantity failed", err);
     }
@@ -149,40 +144,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, []);
 
   useEffect(() => {
-    if (user) {
-      fetchCart();
-    }
+    if (user) fetchCart();
   }, [user]);
 
   return (
-    <AppContext.Provider
-      value={{
-        user,
-        authLoading,
-        cart,
-        products,
-        categories,
-        subcategories,
-        fetchProducts,
-        addToCart,
-        removeFromCart,
-        updateQuantity,
-        fetchUser,
-        fetchCart,
-        logout,
-        isAuthModalOpen,
-        setAuthModalOpen,
-      }}
-    >
+    <AppContext.Provider value={{
+      user, authLoading, cart, products, categories,
+      subcategories: [],
+      fetchProducts, addToCart, removeFromCart, updateQuantity,
+      fetchUser, fetchCart, logout, isAuthModalOpen, setAuthModalOpen,
+    }}>
       {children}
     </AppContext.Provider>
   );
 };
 
 export const useAppContext = () => {
-  const context = useContext(AppContext);
-  if (context === undefined) {
-    throw new Error("useAppContext must be used within an AppProvider");
-  }
-  return context;
+  const ctx = useContext(AppContext);
+  if (!ctx) throw new Error("useAppContext must be used within AppProvider");
+  return ctx;
 };

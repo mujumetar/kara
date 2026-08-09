@@ -550,7 +550,7 @@ function FeaturedSection({ mode, setPage }: { mode: Mode; setPage: (p: Page) => 
     }
   }, [cat]);
 
-  const categoryNames = ["All", ...categories.map((c) => c.name)];
+  const categoryNames = ["All", ...(Array.isArray(categories) ? categories.map((c) => c.name) : [])];
 
   return (
     <section className="py-20 bg-[#06080e]">
