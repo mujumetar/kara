@@ -13,6 +13,7 @@ import Checkout from "./pages/Checkout";
 import ProductDetails from "./pages/ProductDetails";
 import AuthModal from "./components/AuthModal";
 import AdminPanel from "./pages/AdminPanel";
+import UserProfile from "./pages/UserProfile";
 
 type Page = "home" | "products" | "dropship" | "about";
 type Mode = "shop" | "dropship";
@@ -110,13 +111,22 @@ function Navbar({
 
           {user ? (
             <div className="flex items-center gap-2">
-              <span className="text-slate-400 text-xs font-medium hidden lg:block">{user.name?.split(" ")[0]}</span>
               <button
-                onClick={logout}
-                className="text-slate-400 hover:text-red-400 transition-colors p-2 rounded-lg hover:bg-white/5 text-xs font-semibold"
+                onClick={() => navigate("/profile")}
+                className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/5"
               >
-                Logout
+                <User className="w-5 h-5" />
+                <span className="text-xs font-medium hidden lg:block">{user.name?.split(" ")[0]}</span>
               </button>
+              {user.role === "admin" && (
+                <button
+                  onClick={() => navigate("/admin/dashboard")}
+                  className="text-purple-400 hover:text-purple-300 transition-colors p-2 rounded-lg hover:bg-purple-400/5 text-xs font-bold"
+                  title="Admin Panel"
+                >
+                  Admin
+                </button>
+              )}
             </div>
           ) : (
             <button
@@ -1396,6 +1406,7 @@ export default function App() {
         } />
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />
+        <Route path="/profile" element={<UserProfile />} />
         <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
         <Route path="/admin/:section" element={
           <AdminGuard>
