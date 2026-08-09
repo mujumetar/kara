@@ -1,71 +1,78 @@
 import { useState } from "react";
 import API from "../../api";
 import { useAppContext } from "../../context/AppContext";
-import { X } from "lucide-react";
+import { X, Package, Eye, EyeOff } from "lucide-react";
 
 export default function AuthModal() {
   const { isAuthModalOpen, setAuthModalOpen, fetchUser } = useAppContext();
   const [isLogin, setIsLogin] = useState(true);
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [form, setForm] = useState({ name: "", email: "", password: "", phone: "" });
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   if (!isAuthModalOpen) return null;
 
   const submit = async () => {
+    if (!form.email || !form.password) return alert("Please fill all required fields");
     try {
       setLoading(true);
       const url = isLogin ? "/api/login" : "/api/register";
-      const res = await API.post(url, form);
+      const payload = isLogin
+        ? { email: form.email, password: form.password }
+        : { name: form.name, email: form.email, password: form.password, phone: form.phone };
+      const res = await API.post(url, payload);
       if (isLogin) {
-        const { token } = res.data;
-        localStorage.setItem("token", token);
-        // Update user context and close modal
+        localStorage.setItem("token", res.data.token);
         await fetchUser();
         setAuthModalOpen(false);
       } else {
-        alert("Registered successfully! Please login.");
+        alert("Account created! Please sign in.");
         setIsLogin(true);
+        setForm({ ...form, password: "" });
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || "Something went wrong!");
+      alert(err.response?.data?.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleKey = (e: React.KeyboardEvent) => e.key === "Enter" && submit();
-
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="relative w-full max-w-md animate-in fade-in zoom-in duration-300">
-        
-        {/* Close Button */}
-        <button 
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+      <div className="relative w-full max-w-md">
+        {/* Close */}
+        <button
           onClick={() => setAuthModalOpen(false)}
-          className="absolute -top-4 -right-4 bg-white/10 hover:bg-white/20 p-2 rounded-full text-white backdrop-blur-md transition-all z-10"
+          className="absolute -top-3 -right-3 z-10 w-8 h-8 bg-[#0e1420] border border-white/10 hover:border-white/20 rounded-xl flex items-center justify-center text-slate-400 hover:text-white transition-all"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
 
-        <div className="bg-[#06080e]/90 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
-          {/* Background orbs inside modal */}
-          <div className="absolute top-0 right-0 w-48 h-48 bg-[#00e5ff]/20 rounded-full blur-[80px] -z-10" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500/20 rounded-full blur-[80px] -z-10" />
+        <div className="bg-[#0e1420] border border-white/10 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+          {/* Glow effects */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-32 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 right-0 w-48 h-48 bg-blue-500/8 rounded-full blur-3xl pointer-events-none" />
 
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">
-              Kara<span className="text-[#00e5ff]">Store</span>
-            </h1>
-            <p className="text-white/60">
-              {isLogin ? "Welcome back!" : "Create your account"}
-            </p>
+          {/* Logo */}
+          <div className="flex items-center justify-center gap-2.5 mb-8 relative z-10">
+            <div className="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center">
+              <Package className="w-6 h-6 text-white" strokeWidth={2.5} />
+            </div>
+            <span className="text-white font-bold text-xl tracking-tight">
+              sn<span className="text-orange-500">dropshipping</span>
+            </span>
           </div>
 
-          <div className="flex bg-black/40 rounded-xl p-1 mb-6 border border-white/5 relative z-10">
+          <p className="text-slate-400 text-sm text-center mb-6 relative z-10">
+            {isLogin ? "Welcome back! Sign in to continue." : "Create your free account today."}
+          </p>
+
+          {/* Toggle */}
+          <div className="flex bg-black/30 rounded-xl p-1 mb-6 border border-white/5 relative z-10">
             <button
               onClick={() => setIsLogin(true)}
               className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                isLogin ? "bg-white/10 text-white shadow-md" : "text-white/50 hover:text-white"
+                isLogin ? "bg-orange-500 text-white shadow-lg shadow-orange-500/20" : "text-slate-500 hover:text-white"
               }`}
             >
               Sign In
@@ -73,7 +80,7 @@ export default function AuthModal() {
             <button
               onClick={() => setIsLogin(false)}
               className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                !isLogin ? "bg-white/10 text-white shadow-md" : "text-white/50 hover:text-white"
+                !isLogin ? "bg-orange-500 text-white shadow-lg shadow-orange-500/20" : "text-slate-500 hover:text-white"
               }`}
             >
               Register
@@ -83,46 +90,72 @@ export default function AuthModal() {
           <div className="space-y-4 relative z-10">
             {!isLogin && (
               <div>
-                <label className="block text-white/70 text-xs font-semibold uppercase tracking-wider mb-2">Full Name</label>
+                <label className="block text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1.5">Full Name</label>
                 <input
-                  className="w-full bg-black/40 border border-white/10 text-white placeholder:text-white/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00e5ff] transition-all"
+                  className="w-full bg-black/30 border border-white/10 text-white placeholder:text-slate-600 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500/50 transition-colors"
                   placeholder="John Doe"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  onKeyDown={handleKey}
                 />
               </div>
             )}
+
+            {!isLogin && (
+              <div>
+                <label className="block text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1.5">Phone (optional)</label>
+                <input
+                  className="w-full bg-black/30 border border-white/10 text-white placeholder:text-slate-600 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500/50 transition-colors"
+                  placeholder="+91 98765 43210"
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                />
+              </div>
+            )}
+
             <div>
-              <label className="block text-white/70 text-xs font-semibold uppercase tracking-wider mb-2">Email</label>
+              <label className="block text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1.5">Email</label>
               <input
-                className="w-full bg-black/40 border border-white/10 text-white placeholder:text-white/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00e5ff] transition-all"
+                className="w-full bg-black/30 border border-white/10 text-white placeholder:text-slate-600 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500/50 transition-colors"
                 placeholder="you@email.com"
                 type="email"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                onKeyDown={handleKey}
+                onKeyDown={(e) => e.key === "Enter" && submit()}
               />
             </div>
+
             <div>
-              <label className="block text-white/70 text-xs font-semibold uppercase tracking-wider mb-2">Password</label>
-              <input
-                className="w-full bg-black/40 border border-white/10 text-white placeholder:text-white/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00e5ff] transition-all"
-                placeholder="••••••••"
-                type="password"
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                onKeyDown={handleKey}
-              />
+              <label className="block text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1.5">Password</label>
+              <div className="relative">
+                <input
+                  className="w-full bg-black/30 border border-white/10 text-white placeholder:text-slate-600 rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:border-orange-500/50 transition-colors"
+                  placeholder="••••••••"
+                  type={showPassword ? "text" : "password"}
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  onKeyDown={(e) => e.key === "Enter" && submit()}
+                />
+                <button
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
           </div>
 
           <button
             onClick={submit}
             disabled={loading}
-            className="relative z-10 w-full mt-8 py-3.5 bg-[#00e5ff] text-black font-bold rounded-xl hover:bg-white transition-all shadow-[0_0_20px_rgba(0,229,255,0.3)] disabled:opacity-50"
+            className="relative z-10 w-full mt-6 flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-400 text-white font-bold py-4 rounded-xl transition-all hover:shadow-xl hover:shadow-orange-500/25 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
           >
-            {loading ? "Processing..." : (isLogin ? "Sign In" : "Create Account")}
+            {loading ? (
+              <>
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Processing...
+              </>
+            ) : isLogin ? "Sign In" : "Create Account"}
           </button>
         </div>
       </div>

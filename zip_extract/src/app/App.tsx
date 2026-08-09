@@ -1,21 +1,38 @@
 import { useState, useEffect } from "react";
-import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import {
   ShoppingCart, Menu, X, ArrowRight, Package, Globe, Zap, Shield,
   Truck, Star, Search, Building2, Users, Award, MapPin, Phone, Mail,
   TrendingUp, DollarSign, CheckCircle2, Heart, BarChart3, RefreshCw,
-  ChevronRight, User,
+  ChevronRight,
 } from "lucide-react";
-import { useAppContext } from "../context/AppContext";
-import type { Product } from "../context/AppContext";
-import Cart from "./pages/Cart";
-import Checkout from "./pages/Checkout";
-import ProductDetails from "./pages/ProductDetails";
-import AuthModal from "./components/AuthModal";
-import AdminPanel from "./pages/AdminPanel";
 
 type Page = "home" | "products" | "dropship" | "about";
 type Mode = "shop" | "dropship";
+
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+  wholesale: number;
+  category: string;
+  rating: number;
+  reviews: number;
+  imgId: string;
+  badge: string | null;
+}
+
+const PRODUCTS: Product[] = [
+  { id: 1, name: "Premium Wireless Earbuds", price: 49.99, wholesale: 18.5, category: "Electronics", rating: 4.8, reviews: 324, imgId: "1590658268037-6bf12165a8df", badge: "Best Seller" },
+  { id: 2, name: "Smart Fitness Tracker", price: 79.99, wholesale: 28.0, category: "Electronics", rating: 4.7, reviews: 218, imgId: "1523275335684-37898b6baf30", badge: "New" },
+  { id: 3, name: "Minimalist Leather Wallet", price: 34.99, wholesale: 10.2, category: "Accessories", rating: 4.9, reviews: 512, imgId: "1627123424574-724758594785", badge: "Top Rated" },
+  { id: 4, name: "Portable Phone Stand", price: 19.99, wholesale: 5.8, category: "Accessories", rating: 4.6, reviews: 189, imgId: "1616763355548-1b606f439f86", badge: null },
+  { id: 5, name: "LED Desk Lamp", price: 44.99, wholesale: 16.0, category: "Home & Office", rating: 4.7, reviews: 267, imgId: "1593640408182-31c228745a9b", badge: "Hot" },
+  { id: 6, name: "Premium Yoga Mat", price: 59.99, wholesale: 20.5, category: "Sports", rating: 4.8, reviews: 398, imgId: "1574680096145-d05b474e2155", badge: "Best Seller" },
+  { id: 7, name: "Stainless Steel Bottle", price: 29.99, wholesale: 9.0, category: "Sports", rating: 4.9, reviews: 601, imgId: "1602143407151-7111542de6e8", badge: "Top Rated" },
+  { id: 8, name: "Canvas Tote Bag", price: 24.99, wholesale: 7.5, category: "Accessories", rating: 4.5, reviews: 142, imgId: "1548036328-c9fa89d128fa", badge: null },
+];
+
+const CATEGORIES = ["All", "Electronics", "Accessories", "Home & Office", "Sports"];
 
 const HERO_PHRASES = [
   "Sell Without Limits",
@@ -27,19 +44,16 @@ const HERO_PHRASES = [
 // ─── Navbar ───────────────────────────────────────────────────────────────────
 
 function Navbar({
-  page, setPage, mode, setMode, cartCount, setAuthModalOpen,
+  page, setPage, mode, setMode, cartCount,
 }: {
   page: Page;
   setPage: (p: Page) => void;
   mode: Mode;
   setMode: (m: Mode) => void;
   cartCount: number;
-  setAuthModalOpen: (open: boolean) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { user, logout } = useAppContext();
-  const navigate = useNavigate();
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 30);
@@ -108,29 +122,7 @@ function Navbar({
             </button>
           </div>
 
-          {user ? (
-            <div className="flex items-center gap-2">
-              <span className="text-slate-400 text-xs font-medium hidden lg:block">{user.name?.split(" ")[0]}</span>
-              <button
-                onClick={logout}
-                className="text-slate-400 hover:text-red-400 transition-colors p-2 rounded-lg hover:bg-white/5 text-xs font-semibold"
-              >
-                Logout
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => setAuthModalOpen(true)}
-              className="text-slate-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/5"
-            >
-              <User className="w-5 h-5" />
-            </button>
-          )}
-
-          <button
-            onClick={() => navigate("/cart")}
-            className="relative text-slate-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/5"
-          >
+          <button className="relative text-slate-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/5">
             <ShoppingCart className="w-5 h-5" />
             {cartCount > 0 && (
               <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-orange-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold">
@@ -140,10 +132,7 @@ function Navbar({
           </button>
         </div>
 
-        <button
-          onClick={() => setOpen(!open)}
-          className="md:hidden text-white p-2 rounded-lg hover:bg-white/5 transition-colors"
-        >
+        <button onClick={() => setOpen(!open)} className="md:hidden text-white p-2 rounded-lg hover:bg-white/5 transition-colors">
           {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
       </div>
@@ -179,23 +168,6 @@ function Navbar({
               Dropship Mode
             </button>
           </div>
-          <div className="pt-2 flex gap-2">
-            <button
-              onClick={() => { navigate("/cart"); setOpen(false); }}
-              className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-white/5 text-slate-400 flex items-center justify-center gap-2"
-            >
-              <ShoppingCart className="w-4 h-4" /> Cart {cartCount > 0 && `(${cartCount})`}
-            </button>
-            {user ? (
-              <button onClick={() => { logout(); setOpen(false); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-white/5 text-red-400">
-                Logout
-              </button>
-            ) : (
-              <button onClick={() => { setAuthModalOpen(true); setOpen(false); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-white/5 text-slate-400">
-                Sign In
-              </button>
-            )}
-          </div>
         </div>
       )}
     </nav>
@@ -207,7 +179,6 @@ function Navbar({
 function HeroSection({ setPage, mode }: { setPage: (p: Page) => void; mode: Mode }) {
   const [phraseIdx, setPhraseIdx] = useState(0);
   const [visible, setVisible] = useState(true);
-  const { products } = useAppContext();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -220,7 +191,11 @@ function HeroSection({ setPage, mode }: { setPage: (p: Page) => void; mode: Mode
     return () => clearInterval(timer);
   }, []);
 
-  const previewProducts = products.slice(0, 3);
+  const previewCards = [
+    { name: "Wireless Earbuds", price: "$49.99", wholesale: "$18.50", margin: 170, imgId: "1590658268037-6bf12165a8df", top: "4%", left: "8%", rotate: "-7deg", zIndex: 1 },
+    { name: "Smart Watch", price: "$79.99", wholesale: "$28.00", margin: 186, imgId: "1523275335684-37898b6baf30", top: "22%", left: "38%", rotate: "4deg", zIndex: 3 },
+    { name: "Leather Wallet", price: "$34.99", wholesale: "$10.20", margin: 243, imgId: "1627123424574-724758594785", top: "52%", left: "4%", rotate: "-4deg", zIndex: 2 },
+  ];
 
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden" style={{ background: "#06080e" }}>
@@ -228,27 +203,33 @@ function HeroSection({ setPage, mode }: { setPage: (p: Page) => void; mode: Mode
         <div
           className="absolute rounded-full blur-3xl"
           style={{
-            width: 700, height: 700,
+            width: 700,
+            height: 700,
             background: "radial-gradient(circle, rgba(249,115,22,0.18) 0%, transparent 70%)",
-            top: -150, left: -200,
+            top: -150,
+            left: -200,
             animation: "orb1 9s ease-in-out infinite",
           }}
         />
         <div
           className="absolute rounded-full blur-3xl"
           style={{
-            width: 550, height: 550,
+            width: 550,
+            height: 550,
             background: "radial-gradient(circle, rgba(59,130,246,0.13) 0%, transparent 70%)",
-            bottom: -150, right: -100,
+            bottom: -150,
+            right: -100,
             animation: "orb2 11s ease-in-out infinite",
           }}
         />
         <div
           className="absolute rounded-full blur-2xl"
           style={{
-            width: 320, height: 320,
+            width: 320,
+            height: 320,
             background: "radial-gradient(circle, rgba(139,92,246,0.10) 0%, transparent 70%)",
-            top: "45%", right: "28%",
+            top: "45%",
+            right: "28%",
             animation: "orb3 7s ease-in-out infinite",
           }}
         />
@@ -325,86 +306,39 @@ function HeroSection({ setPage, mode }: { setPage: (p: Page) => void; mode: Mode
         </div>
 
         <div className="relative hidden lg:flex justify-center items-center h-[520px]">
-          {previewProducts.length > 0 ? previewProducts.map((product, i) => {
-            const positions = [
-              { top: "4%", left: "8%", rotate: "-7deg", zIndex: 1 },
-              { top: "22%", left: "38%", rotate: "4deg", zIndex: 3 },
-              { top: "52%", left: "4%", rotate: "-4deg", zIndex: 2 },
-            ];
-            const pos = positions[i];
-            const imgUrl = product.images?.[0] || "";
-            const margin = product.wholesalePrice
-              ? Math.round(((product.price - product.wholesalePrice) / product.wholesalePrice) * 100)
-              : 150;
-            return (
-              <div
-                key={product._id}
-                className="absolute w-52 bg-[#0e1420] border border-white/10 rounded-2xl overflow-hidden shadow-2xl hover:scale-105 hover:border-white/20 transition-all duration-300 cursor-pointer group"
-                style={{ top: pos.top, left: pos.left, transform: `rotate(${pos.rotate})`, zIndex: pos.zIndex }}
-              >
-                <div className="h-32 bg-[#0a0f1a] overflow-hidden">
-                  <img
-                    src={imgUrl}
-                    alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    onError={(e) => { (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=220&h=160&fit=crop&auto=format"; }}
-                  />
-                </div>
-                <div className="p-3.5">
-                  <p className="text-white text-xs font-bold truncate mb-1">{product.name}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-orange-400 text-sm font-extrabold">
-                      {mode === "dropship" && product.wholesalePrice
-                        ? `₹${product.wholesalePrice.toFixed(2)}`
-                        : `₹${product.price.toFixed(2)}`}
+          {previewCards.map((card, i) => (
+            <div
+              key={i}
+              className="absolute w-52 bg-[#0e1420] border border-white/10 rounded-2xl overflow-hidden shadow-2xl hover:scale-105 hover:border-white/20 transition-all duration-300 cursor-pointer group"
+              style={{ top: card.top, left: card.left, transform: `rotate(${card.rotate})`, zIndex: card.zIndex }}
+            >
+              <div className="h-32 bg-[#0a0f1a] overflow-hidden">
+                <img
+                  src={`https://images.unsplash.com/photo-${card.imgId}?w=220&h=160&fit=crop&auto=format`}
+                  alt={card.name}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+              </div>
+              <div className="p-3.5">
+                <p className="text-white text-xs font-bold truncate mb-1">{card.name}</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-orange-400 text-sm font-extrabold">
+                    {mode === "dropship" ? card.wholesale : card.price}
+                  </span>
+                  {mode === "dropship" && (
+                    <span className="text-emerald-400 text-xs font-semibold bg-emerald-400/10 px-1.5 py-0.5 rounded-md">
+                      +{card.margin}%
                     </span>
-                    {mode === "dropship" && (
-                      <span className="text-emerald-400 text-xs font-semibold bg-emerald-400/10 px-1.5 py-0.5 rounded-md">
-                        +{margin}%
-                      </span>
-                    )}
-                  </div>
+                  )}
                 </div>
               </div>
-            );
-          }) : [0, 1, 2].map((i) => {
-            const staticCards = [
-              { name: "Wireless Earbuds", price: "₹49.99", wholesale: "₹18.50", margin: 170, imgId: "1590658268037-6bf12165a8df", top: "4%", left: "8%", rotate: "-7deg", zIndex: 1 },
-              { name: "Smart Watch", price: "₹79.99", wholesale: "₹28.00", margin: 186, imgId: "1523275335684-37898b6baf30", top: "22%", left: "38%", rotate: "4deg", zIndex: 3 },
-              { name: "Leather Wallet", price: "₹34.99", wholesale: "₹10.20", margin: 243, imgId: "1627123424574-724758594785", top: "52%", left: "4%", rotate: "-4deg", zIndex: 2 },
-            ];
-            const card = staticCards[i];
-            return (
-              <div
-                key={i}
-                className="absolute w-52 bg-[#0e1420] border border-white/10 rounded-2xl overflow-hidden shadow-2xl hover:scale-105 hover:border-white/20 transition-all duration-300 cursor-pointer group"
-                style={{ top: card.top, left: card.left, transform: `rotate(${card.rotate})`, zIndex: card.zIndex }}
-              >
-                <div className="h-32 bg-[#0a0f1a] overflow-hidden">
-                  <img
-                    src={`https://images.unsplash.com/photo-${card.imgId}?w=220&h=160&fit=crop&auto=format`}
-                    alt={card.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-                <div className="p-3.5">
-                  <p className="text-white text-xs font-bold truncate mb-1">{card.name}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-orange-400 text-sm font-extrabold">
-                      {mode === "dropship" ? card.wholesale : card.price}
-                    </span>
-                    {mode === "dropship" && (
-                      <span className="text-emerald-400 text-xs font-semibold bg-emerald-400/10 px-1.5 py-0.5 rounded-md">
-                        +{card.margin}%
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+            </div>
+          ))}
 
-          <div className="absolute bottom-6 right-2 bg-[#0e1420] border border-white/10 rounded-2xl p-4 shadow-2xl" style={{ zIndex: 10 }}>
+          <div
+            className="absolute bottom-6 right-2 bg-[#0e1420] border border-white/10 rounded-2xl p-4 shadow-2xl"
+            style={{ zIndex: 10 }}
+          >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-emerald-500/15 rounded-xl flex items-center justify-center">
                 <TrendingUp className="w-5 h-5 text-emerald-400" />
@@ -416,7 +350,10 @@ function HeroSection({ setPage, mode }: { setPage: (p: Page) => void; mode: Mode
             </div>
           </div>
 
-          <div className="absolute top-6 right-0 bg-[#0e1420] border border-white/10 rounded-2xl p-4 shadow-2xl" style={{ zIndex: 10 }}>
+          <div
+            className="absolute top-6 right-0 bg-[#0e1420] border border-white/10 rounded-2xl p-4 shadow-2xl"
+            style={{ zIndex: 10 }}
+          >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-blue-500/15 rounded-xl flex items-center justify-center">
                 <Globe className="w-5 h-5 text-blue-400" />
@@ -461,39 +398,30 @@ function StatsBar() {
 
 // ─── Product Card ─────────────────────────────────────────────────────────────
 
-function ProductCard({ product, mode }: { product: Product; mode: Mode }) {
+function ProductCard({ product, mode, onAddToCart }: { product: Product; mode: Mode; onAddToCart: () => void }) {
   const [wishlisted, setWishlisted] = useState(false);
-  const { addToCart } = useAppContext();
-  const navigate = useNavigate();
-  const margin = product.wholesalePrice
-    ? Math.round(((product.price - product.wholesalePrice) / product.wholesalePrice) * 100)
-    : 0;
-  const imgUrl = product.images?.[0] || "";
+  const margin = Math.round(((product.price - product.wholesale) / product.wholesale) * 100);
 
   return (
-    <div
-      className="bg-[#0e1420] border border-white/5 rounded-2xl overflow-hidden hover:border-white/10 hover:-translate-y-1.5 transition-all duration-300 group flex flex-col cursor-pointer"
-      onClick={() => navigate(`/products/${product._id}`)}
-    >
+    <div className="bg-[#0e1420] border border-white/5 rounded-2xl overflow-hidden hover:border-white/10 hover:-translate-y-1.5 transition-all duration-300 group flex flex-col">
       <div className="relative bg-[#0a0f1a] h-52 overflow-hidden flex-shrink-0">
         <img
-          src={imgUrl}
+          src={`https://images.unsplash.com/photo-${product.imgId}?w=400&h=320&fit=crop&auto=format`}
           alt={product.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          onError={(e) => { (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=320&fit=crop&auto=format"; }}
         />
-        {product.stock <= 5 && product.stock > 0 && (
+        {product.badge && (
           <span className="absolute top-3 left-3 bg-orange-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide">
-            Low Stock
+            {product.badge}
           </span>
         )}
-        {mode === "dropship" && margin > 0 && (
+        {mode === "dropship" && (
           <span className="absolute top-3 right-3 bg-emerald-500/90 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-full">
             +{margin}% margin
           </span>
         )}
         <button
-          onClick={(e) => { e.stopPropagation(); setWishlisted(!wishlisted); }}
+          onClick={() => setWishlisted(!wishlisted)}
           className="absolute bottom-3 right-3 w-8 h-8 bg-black/30 hover:bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center transition-colors"
         >
           <Heart className={`w-3.5 h-3.5 transition-colors ${wishlisted ? "text-red-400 fill-red-400" : "text-white"}`} />
@@ -504,24 +432,24 @@ function ProductCard({ product, mode }: { product: Product; mode: Mode }) {
         <h3 className="text-white text-sm font-semibold leading-snug mb-1.5 flex-1">{product.name}</h3>
         <div className="flex items-center gap-1 mb-4">
           <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-          <span className="text-amber-400 text-xs font-semibold">{product.rating?.toFixed(1) || "4.5"}</span>
-          <span className="text-slate-600 text-xs">({typeof product.reviews === "number" ? product.reviews : (product.reviews as any[])?.length || 0} reviews)</span>
+          <span className="text-amber-400 text-xs font-semibold">{product.rating}</span>
+          <span className="text-slate-600 text-xs">({product.reviews} reviews)</span>
         </div>
 
         <div className="flex items-center justify-between gap-2">
           <div>
-            {mode === "dropship" && product.wholesalePrice ? (
+            {mode === "dropship" ? (
               <div>
                 <p className="text-slate-600 text-[10px] font-medium uppercase tracking-wider">Wholesale</p>
-                <p className="text-blue-400 text-xl font-extrabold leading-none">₹{product.wholesalePrice.toFixed(2)}</p>
-                <p className="text-slate-600 text-xs mt-0.5">Retail ₹{product.price.toFixed(2)}</p>
+                <p className="text-blue-400 text-xl font-extrabold leading-none">${product.wholesale.toFixed(2)}</p>
+                <p className="text-slate-600 text-xs mt-0.5">Retail ${product.price.toFixed(2)}</p>
               </div>
             ) : (
-              <p className="text-orange-400 text-xl font-extrabold">₹{product.price.toFixed(2)}</p>
+              <p className="text-orange-400 text-xl font-extrabold">${product.price.toFixed(2)}</p>
             )}
           </div>
           <button
-            onClick={(e) => { e.stopPropagation(); addToCart(product); }}
+            onClick={onAddToCart}
             className={`text-xs font-bold px-4 py-2.5 rounded-xl transition-all hover:-translate-y-0.5 active:translate-y-0 flex-shrink-0 ${
               mode === "dropship"
                 ? "bg-blue-500 hover:bg-blue-400 text-white hover:shadow-lg hover:shadow-blue-500/20"
@@ -538,19 +466,9 @@ function ProductCard({ product, mode }: { product: Product; mode: Mode }) {
 
 // ─── Featured Section ─────────────────────────────────────────────────────────
 
-function FeaturedSection({ mode, setPage }: { mode: Mode; setPage: (p: Page) => void }) {
-  const { products, categories, fetchProducts } = useAppContext();
+function FeaturedSection({ mode, setPage, onAddToCart }: { mode: Mode; setPage: (p: Page) => void; onAddToCart: () => void }) {
   const [cat, setCat] = useState("All");
-
-  useEffect(() => {
-    if (cat === "All") {
-      fetchProducts();
-    } else {
-      fetchProducts({ category: cat });
-    }
-  }, [cat]);
-
-  const categoryNames = ["All", ...categories.map((c) => c.name)];
+  const filtered = cat === "All" ? PRODUCTS : PRODUCTS.filter((p) => p.category === cat);
 
   return (
     <section className="py-20 bg-[#06080e]">
@@ -565,7 +483,7 @@ function FeaturedSection({ mode, setPage }: { mode: Mode; setPage: (p: Page) => 
             </h2>
           </div>
           <div className="flex flex-wrap gap-2">
-            {categoryNames.map((c) => (
+            {CATEGORIES.map((c) => (
               <button
                 key={c}
                 onClick={() => setCat(c)}
@@ -581,26 +499,11 @@ function FeaturedSection({ mode, setPage }: { mode: Mode; setPage: (p: Page) => 
           </div>
         </div>
 
-        {products.length === 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="bg-[#0e1420] border border-white/5 rounded-2xl overflow-hidden animate-pulse">
-                <div className="h-52 bg-white/5" />
-                <div className="p-4 space-y-3">
-                  <div className="h-4 bg-white/5 rounded w-3/4" />
-                  <div className="h-3 bg-white/5 rounded w-1/2" />
-                  <div className="h-8 bg-white/5 rounded" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {products.slice(0, 8).map((p) => (
-              <ProductCard key={p._id} product={p} mode={mode} />
-            ))}
-          </div>
-        )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {filtered.slice(0, 8).map((p) => (
+            <ProductCard key={p.id} product={p} mode={mode} onAddToCart={onAddToCart} />
+          ))}
+        </div>
 
         <div className="text-center mt-10">
           <button
@@ -771,56 +674,22 @@ function CTABanner({ setPage }: { setPage: (p: Page) => void }) {
   );
 }
 
-// ─── Home Page ────────────────────────────────────────────────────────────────
-
-function HomePage({ mode, setPage }: { mode: Mode; setPage: (p: Page) => void }) {
-  return (
-    <>
-      <HeroSection setPage={setPage} mode={mode} />
-      <StatsBar />
-      <FeaturedSection mode={mode} setPage={setPage} />
-      <DropshipSection setPage={setPage} />
-      <Testimonials />
-      <CTABanner setPage={setPage} />
-    </>
-  );
-}
-
 // ─── Products Page ────────────────────────────────────────────────────────────
 
-function ProductsPage({ mode }: { mode: Mode }) {
-  const { products, categories, fetchProducts } = useAppContext();
+function ProductsPage({ mode, onAddToCart }: { mode: Mode; onAddToCart: () => void }) {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [sortBy, setSortBy] = useState("default");
 
-  useEffect(() => {
-    const params: any = {};
-    if (category !== "All") params.category = category;
-    if (search) params.search = search;
-    fetchProducts(params);
-  }, [category]);
+  let filtered = PRODUCTS.filter((p) => {
+    const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
+    const matchCat = category === "All" || p.category === category;
+    return matchSearch && matchCat;
+  });
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
-  };
-
-  const handleSearchSubmit = () => {
-    const params: any = {};
-    if (category !== "All") params.category = category;
-    if (search) params.search = search;
-    fetchProducts(params);
-  };
-
-  let filtered = [...products];
-  if (search) {
-    filtered = filtered.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
-  }
-  if (sortBy === "price-asc") filtered = filtered.sort((a, b) => a.price - b.price);
-  if (sortBy === "price-desc") filtered = filtered.sort((a, b) => b.price - a.price);
-  if (sortBy === "rating") filtered = filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-
-  const categoryNames = ["All", ...categories.map((c) => c.name)];
+  if (sortBy === "price-asc") filtered = [...filtered].sort((a, b) => (mode === "dropship" ? a.wholesale - b.wholesale : a.price - b.price));
+  if (sortBy === "price-desc") filtered = [...filtered].sort((a, b) => (mode === "dropship" ? b.wholesale - a.wholesale : b.price - a.price));
+  if (sortBy === "rating") filtered = [...filtered].sort((a, b) => b.rating - a.rating);
 
   return (
     <div className="min-h-screen bg-[#06080e] pt-24 pb-20">
@@ -832,7 +701,7 @@ function ProductsPage({ mode }: { mode: Mode }) {
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white">
             {mode === "dropship" ? "Dropship Catalog" : "Shop All Products"}
           </h1>
-          <p className="text-slate-500 text-sm mt-1.5">{filtered.length} products available</p>
+          <p className="text-slate-500 text-sm mt-1.5">{PRODUCTS.length} products available</p>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 mb-8 flex-wrap">
@@ -842,14 +711,13 @@ function ProductsPage({ mode }: { mode: Mode }) {
               type="text"
               placeholder="Search products..."
               value={search}
-              onChange={handleSearch}
-              onKeyDown={(e) => e.key === "Enter" && handleSearchSubmit()}
+              onChange={(e) => setSearch(e.target.value)}
               className="w-full bg-[#0e1420] border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-orange-500/50 transition-colors"
             />
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {categoryNames.map((c) => (
+            {CATEGORIES.map((c) => (
               <button
                 key={c}
                 onClick={() => setCategory(c)}
@@ -882,7 +750,7 @@ function ProductsPage({ mode }: { mode: Mode }) {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {filtered.map((p) => (
-              <ProductCard key={p._id} product={p} mode={mode} />
+              <ProductCard key={p.id} product={p} mode={mode} onAddToCart={onAddToCart} />
             ))}
           </div>
         )}
@@ -906,7 +774,7 @@ function DropshipPage() {
     },
     {
       name: "Growth",
-      price: "₹29",
+      price: "$29",
       period: "/month",
       desc: "For growing stores",
       features: ["500 products in catalog", "Advanced analytics", "Priority shipping rates", "Live chat support", "Full API access", "Shopify & WooCommerce sync"],
@@ -915,7 +783,7 @@ function DropshipPage() {
     },
     {
       name: "Pro",
-      price: "₹79",
+      price: "$79",
       period: "/month",
       desc: "For serious sellers",
       features: ["Unlimited products", "Full analytics suite", "Express shipping rates", "Dedicated account manager", "Custom white-label packaging", "Bulk order discounts"],
@@ -1096,28 +964,6 @@ function AboutPage() {
           </div>
         </div>
 
-        {/* Values */}
-        <div className="mb-24">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white">What we stand for</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { icon: Award, title: "Quality First", desc: "Every product entering our warehouse is inspected against our 12-point quality checklist before it is ever listed.", color: "text-amber-400", bg: "bg-amber-400/10" },
-              { icon: Users, title: "Partner Success", desc: "We succeed when our dropshippers succeed. Our team is fully dedicated to helping you grow your business.", color: "text-blue-400", bg: "bg-blue-400/10" },
-              { icon: Shield, title: "Total Transparency", desc: "Real-time inventory, honest margins, and no hidden fees. You always know exactly what you are paying for.", color: "text-emerald-400", bg: "bg-emerald-400/10" },
-            ].map(({ icon: Icon, title, desc, color, bg }) => (
-              <div key={title} className="bg-[#0e1420] border border-white/5 rounded-2xl p-8 text-center">
-                <div className={`w-14 h-14 ${bg} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
-                  <Icon className={`w-7 h-7 ${color}`} />
-                </div>
-                <h3 className="text-white text-lg font-bold mb-3">{title}</h3>
-                <p className="text-slate-500 text-sm leading-relaxed">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* Warehouse */}
         <div className="mb-24">
           <div className="text-center mb-10">
@@ -1206,6 +1052,28 @@ function AboutPage() {
           </div>
         </div>
 
+        {/* Values */}
+        <div className="mb-24">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white">What we stand for</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { icon: Award, title: "Quality First", desc: "Every product entering our warehouse is inspected against our 12-point quality checklist before it is ever listed.", color: "text-amber-400", bg: "bg-amber-400/10" },
+              { icon: Users, title: "Partner Success", desc: "We succeed when our dropshippers succeed. Our team is fully dedicated to helping you grow your business.", color: "text-blue-400", bg: "bg-blue-400/10" },
+              { icon: Shield, title: "Total Transparency", desc: "Real-time inventory, honest margins, and no hidden fees. You always know exactly what you are paying for.", color: "text-emerald-400", bg: "bg-emerald-400/10" },
+            ].map(({ icon: Icon, title, desc, color, bg }) => (
+              <div key={title} className="bg-[#0e1420] border border-white/5 rounded-2xl p-8 text-center">
+                <div className={`w-14 h-14 ${bg} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
+                  <Icon className={`w-7 h-7 ${color}`} />
+                </div>
+                <h3 className="text-white text-lg font-bold mb-3">{title}</h3>
+                <p className="text-slate-500 text-sm leading-relaxed">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Team */}
         <div>
           <div className="text-center mb-10">
@@ -1250,6 +1118,16 @@ function Footer({ setPage }: { setPage: (p: Page) => void }) {
             <p className="text-slate-500 text-sm leading-relaxed max-w-xs mb-5">
               Your complete ecommerce and dropshipping platform. 12,000+ products, 47 countries, zero hassle.
             </p>
+            <div className="flex gap-2.5">
+              {["T", "I", "L"].map((s) => (
+                <button
+                  key={s}
+                  className="w-9 h-9 bg-white/5 hover:bg-white/10 border border-white/5 rounded-lg text-slate-500 hover:text-white text-xs font-bold transition-colors"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div>
@@ -1302,41 +1180,18 @@ function Footer({ setPage }: { setPage: (p: Page) => void }) {
   );
 }
 
-// ─── Admin Guard ──────────────────────────────────────────────────────────────
-
-function AdminGuard({ children }: { children: React.ReactNode }) {
-  const { user, authLoading } = useAppContext();
-  if (authLoading) return (
-    <div className="min-h-screen bg-[#06080e] flex items-center justify-center">
-      <span className="w-6 h-6 border-2 border-orange-500/30 border-t-orange-500 rounded-full animate-spin" />
-    </div>
-  );
-  if (!user || user.role !== "admin") return <Navigate to="/" replace />;
-  return <>{children}</>;
-}
-
 // ─── App ──────────────────────────────────────────────────────────────────────
 
 export default function App() {
   const [page, setPage] = useState<Page>("home");
   const [mode, setMode] = useState<Mode>("shop");
-  const { cart, setAuthModalOpen, isAuthModalOpen, fetchProducts } = useAppContext();
-  const navigate = useNavigate();
+  const [cartCount, setCartCount] = useState(0);
+
+  const handleAddToCart = () => setCartCount((c) => c + 1);
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  const cartCount = cart.reduce((acc, item) => acc + (item.quantity || 1), 0);
-
-  const handleSetPage = (p: Page) => {
-    setPage(p);
     window.scrollTo({ top: 0, behavior: "smooth" });
-    if (p === "home") navigate("/");
-    else if (p === "products") navigate("/products");
-    else if (p === "dropship") navigate("/dropship");
-    else if (p === "about") navigate("/about");
-  };
+  }, [page]);
 
   return (
     <div className="min-h-screen bg-[#06080e]">
@@ -1359,58 +1214,23 @@ export default function App() {
         ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
       `}</style>
 
-      <Navbar
-        page={page}
-        setPage={handleSetPage}
-        mode={mode}
-        setMode={setMode}
-        cartCount={cartCount}
-        setAuthModalOpen={setAuthModalOpen}
-      />
+      <Navbar page={page} setPage={setPage} mode={mode} setMode={setMode} cartCount={cartCount} />
 
-      <Routes>
-        <Route path="/" element={
-          <>
-            <HomePage mode={mode} setPage={handleSetPage} />
-            <Footer setPage={handleSetPage} />
-          </>
-        } />
-        <Route path="/products" element={
-          <>
-            <ProductsPage mode={mode} />
-            <Footer setPage={handleSetPage} />
-          </>
-        } />
-        <Route path="/products/:id" element={<ProductDetails />} />
-        <Route path="/dropship" element={
-          <>
-            <DropshipPage />
-            <Footer setPage={handleSetPage} />
-          </>
-        } />
-        <Route path="/about" element={
-          <>
-            <AboutPage />
-            <Footer setPage={handleSetPage} />
-          </>
-        } />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/checkout" element={<Checkout />} />
-        <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
-        <Route path="/admin/:section" element={
-          <AdminGuard>
-            <AdminPanel />
-          </AdminGuard>
-        } />
-        <Route path="*" element={
-          <>
-            <HomePage mode={mode} setPage={handleSetPage} />
-            <Footer setPage={handleSetPage} />
-          </>
-        } />
-      </Routes>
+      {page === "home" && (
+        <>
+          <HeroSection setPage={setPage} mode={mode} />
+          <StatsBar />
+          <FeaturedSection mode={mode} setPage={setPage} onAddToCart={handleAddToCart} />
+          <DropshipSection setPage={setPage} />
+          <Testimonials />
+          <CTABanner setPage={setPage} />
+        </>
+      )}
+      {page === "products" && <ProductsPage mode={mode} onAddToCart={handleAddToCart} />}
+      {page === "dropship" && <DropshipPage />}
+      {page === "about" && <AboutPage />}
 
-      {isAuthModalOpen && <AuthModal />}
+      <Footer setPage={setPage} />
     </div>
   );
 }

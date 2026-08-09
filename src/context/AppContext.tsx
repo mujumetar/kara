@@ -3,7 +3,8 @@ import API from "../api";
 
 export interface Product {
   _id: string;
-  name: string;
+  name: string;    // mapped from backend `title`
+  title?: string;  // raw backend field
   description: string;
   price: number;
   wholesalePrice?: number;
@@ -12,7 +13,8 @@ export interface Product {
   images: string[];
   stock: number;
   rating?: number;
-  reviews?: number;
+  avgRating?: number;
+  reviews?: number | any[];
 }
 
 export interface User {
@@ -77,7 +79,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const fetchProducts = async (filters = {}) => {
     try {
       const res = await API.get("/api/products", { params: filters });
-      setProducts(res.data);
+      // Backend uses `title`, frontend uses `name` — normalize here
+      const normalized = res.data.map((p: any) => ({
+        ...p,
+        name: p.name || p.title || "",
+        wholesalePrice: p.wholesalePrice ?? undefined,
+      }));
+      setProducts(normalized);
     } catch (err) {
       console.error("PRODUCT FETCH FAILED", err);
       setProducts([]);
