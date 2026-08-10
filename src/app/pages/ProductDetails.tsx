@@ -11,8 +11,10 @@ import {
 interface Review {
   _id: string;
   name: string;
-  rating: number;
+  rating?: number;
   comment: string;
+  isAdminReview?: boolean;
+  comments?: any[];
   createdAt: string;
 }
 
@@ -25,12 +27,18 @@ export default function ProductDetails() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [wishlisted, setWishlisted] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const [selSize, setSelSize] = useState("");
+  const [selColor, setSelColor] = useState("");
+  const [commentText, setCommentText] = useState("");
+  const [activeReviewId, setActiveReviewId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         const res = await API.get(`/api/products/${id}`);
         setProduct(res.data);
+        if (res.data.sizes?.length) setSelSize(res.data.sizes[0]);
+        if (res.data.colors?.length) setSelColor(res.data.colors[0]);
       } catch (err) {
         console.error(err);
       } finally {
@@ -40,6 +48,18 @@ export default function ProductDetails() {
     fetchProduct();
     window.scrollTo(0, 0);
   }, [id]);
+
+  const submitComment = async (reviewId: string) => {
+    if (!product || !commentText.trim()) return;
+    try {
+      const res = await API.post(`/api/products/${product._id}/reviews/${reviewId}/comment`, { comment: commentText });
+      setProduct({ ...product, reviews: res.data.reviews });
+      setCommentText("");
+      setActiveReviewId(null);
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to add comment");
+    }
+  };
 
   if (loading) {
     return (
@@ -163,6 +183,11 @@ export default function ProductDetails() {
                 <span className="text-amber-400 text-sm font-bold ml-1">{Number(avgRating).toFixed(1)}</span>
               </div>
               <span className="text-slate-600 text-sm">({reviews.length} reviews)</span>
+              {(product.baseOrderCount !== undefined && product.baseOrderCount > 0) && (
+                <span className="text-orange-400 text-sm font-bold bg-orange-400/10 px-2 py-0.5 rounded-md">
+                  {product.baseOrderCount} Orders
+                </span>
+              )}
               {product.stock > 0 ? (
                 <span className="flex items-center gap-1.5 text-emerald-400 text-sm font-semibold">
                   <CheckCircle2 className="w-4 h-4" /> In Stock ({product.stock})
@@ -188,6 +213,38 @@ export default function ProductDetails() {
               )}
             </div>
 
+            {/* Variants */}
+            {((product.sizes && product.sizes.length > 0) || (product.colors && product.colors.length > 0)) && (
+              <div className="mb-8 space-y-4">
+                {product.sizes && product.sizes.length > 0 && (
+                  <div>
+                    <p className="text-white text-sm font-bold mb-2">Size: <span className="text-orange-400">{selSize}</span></p>
+                    <div className="flex flex-wrap gap-2">
+                      {product.sizes.map((s: string) => (
+                        <button key={s} onClick={() => setSelSize(s)}
+                          className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${selSize === s ? "bg-orange-500 text-white" : "bg-[#0e1420] border border-white/10 text-slate-400 hover:text-white"}`}>
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {product.colors && product.colors.length > 0 && (
+                  <div>
+                    <p className="text-white text-sm font-bold mb-2">Color: <span className="text-orange-400">{selColor}</span></p>
+                    <div className="flex flex-wrap gap-2">
+                      {product.colors.map((c: string) => (
+                        <button key={c} onClick={() => setSelColor(c)}
+                          className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${selColor === c ? "bg-orange-500 text-white" : "bg-[#0e1420] border border-white/10 text-slate-400 hover:text-white"}`}>
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="flex items-center gap-4 mb-8">
               <div className="flex items-center gap-2 bg-[#0e1420] border border-white/10 rounded-xl p-1">
                 <button
@@ -210,7 +267,8 @@ export default function ProductDetails() {
                   if (inCart) {
                     navigate("/cart");
                   } else {
-                    for (let i = 0; i < quantity; i++) addToCart(product);
+                    const productWithVariants = { ...product, selectedSize: selSize, selectedColor: selColor };
+                    for (let i = 0; i < quantity; i++) addToCart(productWithVariants);
                   }
                 }}
                 disabled={product.stock === 0}
@@ -248,21 +306,68 @@ export default function ProductDetails() {
                 <span className="text-slate-500 text-xs">({reviews.length})</span>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {reviews.map((review) => (
-                <div key={review._id} className="bg-[#0e1420] border border-white/5 rounded-2xl p-5 hover:border-white/10 transition-colors">
+                <div key={review._id} className={`border rounded-2xl p-5 hover:border-white/20 transition-colors ${review.isAdminReview ? "bg-orange-500/5 border-orange-500/30" : "bg-[#0e1420] border-white/5"}`}>
                   <div className="flex items-center justify-between mb-3">
-                    <p className="text-white font-bold text-sm">{review.name}</p>
-                    <div className="flex gap-0.5">
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <Star key={s} className={`w-3.5 h-3.5 ${s <= review.rating ? "text-amber-400 fill-amber-400" : "text-slate-700"}`} />
-                      ))}
-                    </div>
+                    <p className="text-white font-bold text-sm flex items-center gap-2">
+                      {review.name}
+                      {review.isAdminReview && <span className="bg-orange-500 text-white text-[10px] uppercase font-bold px-1.5 py-0.5 rounded">Admin</span>}
+                    </p>
+                    {!review.isAdminReview && review.rating && (
+                      <div className="flex gap-0.5">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <Star key={s} className={`w-3.5 h-3.5 ${s <= review.rating! ? "text-amber-400 fill-amber-400" : "text-slate-700"}`} />
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <p className="text-slate-400 text-sm leading-relaxed italic">"{review.comment}"</p>
-                  <p className="text-slate-600 text-xs mt-3">
+                  <p className="text-slate-300 text-sm leading-relaxed mb-3">"{review.comment}"</p>
+                  <p className="text-slate-600 text-xs mb-4">
                     {new Date(review.createdAt).toLocaleDateString("en-IN", { year: "numeric", month: "short", day: "numeric" })}
                   </p>
+
+                  {/* Comments on this review */}
+                  {review.comments && review.comments.length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-white/5 space-y-3 pl-4 border-l-2 border-l-white/10">
+                      {review.comments.map((c: any, i: number) => (
+                        <div key={i}>
+                          <p className="text-white text-xs font-bold">{c.name}</p>
+                          <p className="text-slate-400 text-xs mt-0.5">{c.comment}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Reply Button / Input */}
+                  {review.isAdminReview && (
+                    <div className="mt-4 pt-4 border-t border-white/10">
+                      {activeReviewId === review._id ? (
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={commentText}
+                            onChange={(e) => setCommentText(e.target.value)}
+                            placeholder="Add your comment..."
+                            className="flex-1 bg-black/30 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-orange-500/50"
+                          />
+                          <button
+                            onClick={() => submitComment(review._id)}
+                            className="bg-orange-500 hover:bg-orange-400 text-white px-3 py-1.5 rounded-lg text-sm font-bold transition-colors"
+                          >
+                            Post
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setActiveReviewId(review._id)}
+                          className="text-orange-400 text-sm font-semibold hover:text-orange-300 transition-colors"
+                        >
+                          Reply to this review
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

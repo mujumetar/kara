@@ -14,7 +14,10 @@ export interface Product {
   stock: number;
   rating?: number;
   avgRating?: number;
-  reviews?: number | any[];
+  sizes?: string[];
+  colors?: string[];
+  baseOrderCount?: number;
+  reviews?: any[];
 }
 
 export interface User {

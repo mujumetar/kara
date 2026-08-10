@@ -38,50 +38,52 @@ export default function Checkout() {
 
     setLoading(true);
     try {
+      // Step 1 — create mongo order
       const checkoutRes = await API.post("/api/checkout", {
         cart,
         address: user.addresses[addressIndex],
       });
       const mongoOrderId = checkoutRes.data.orderId;
 
-      const razorpayRes = await API.post("/api/payment/create-order", {
-        orderId: mongoOrderId,
-        amount: subtotal,
-      });
+      // Step 2 — try Razorpay
+      try {
+        const razorpayRes = await API.post("/api/payment/create-order", { orderId: mongoOrderId });
 
-      const options = {
-        key: (import.meta as any).env?.VITE_RAZORPAY_KEY || "rzp_test_RziTV0f7RSbzDC",
-        amount: razorpayRes.data.amount * 100,
-        currency: "INR",
-        name: "SN Dropshipping",
-        description: "Order Checkout",
-        order_id: razorpayRes.data.razorpayOrderId,
-        handler: async (response: any) => {
-          try {
-            await API.post("/api/payment/verify", {
-              ...response,
-              orderId: mongoOrderId,
-            });
-            navigate("/");
-            alert("Payment Successful! Your order has been placed.");
-          } catch (err) {
-            console.error(err);
-            alert("Payment Verification Failed");
-          }
-        },
-        prefill: {
-          name: user.name,
-          email: user.email,
-          contact: user.phone,
-        },
-        theme: { color: "#f97316" },
-      };
+        const options = {
+          key: "rzp_test_RziTV0f7RSbzDC",
+          amount: razorpayRes.data.amount * 100,
+          currency: "INR",
+          name: "SN Dropshipping",
+          description: "Order Checkout",
+          order_id: razorpayRes.data.razorpayOrderId,
+          handler: async (response: any) => {
+            try {
+              await API.post("/api/payment/verify", { ...response, orderId: mongoOrderId });
+              alert("Payment Successful! Your order has been placed.");
+              navigate("/profile");
+            } catch {
+              alert("Payment Verification Failed. Please contact support.");
+            }
+          },
+          prefill: { name: user.name, email: user.email, contact: user.phone },
+          theme: { color: "#f97316" },
+          modal: { ondismiss: () => setLoading(false) },
+        };
 
-      const rzp = new (window as any).Razorpay(options);
-      rzp.open();
-    } catch (err) {
-      console.error(err);
-      alert("Something went wrong with checkout");
+        const rzp = new (window as any).Razorpay(options);
+        rzp.open();
+      } catch (rzpErr: any) {
+        // Razorpay failed — offer COD
+        const detail = rzpErr.response?.data?.detail || "Razorpay unavailable";
+        const useCOD = confirm(`Online payment failed (${detail}).\n\nWould you like to place the order with Cash on Delivery instead?`);
+        if (useCOD) {
+          await API.post("/api/payment/cod", { orderId: mongoOrderId });
+          alert("Order placed successfully with Cash on Delivery!");
+          navigate("/profile");
+        }
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Something went wrong with checkout");
     } finally {
       setLoading(false);
     }
@@ -272,12 +274,28 @@ export default function Checkout() {
                 ) : (
                   <>
                     <Lock className="w-4 h-4" />
-                    Pay Securely with Razorpay
+                    Pay with Razorpay
                   </>
                 )}
               </button>
+
+              <div className="flex items-center gap-3 my-3">
+                <div className="flex-1 h-px bg-white/5" />
+                <span className="text-slate-600 text-xs">or</span>
+                <div className="flex-1 h-px bg-white/5" />
+              </div>
+
+              <button
+                onClick={handleCOD}
+                disabled={loading || !cart.length}
+                className="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white font-bold py-3.5 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              >
+                <Truck className="w-4 h-4 text-emerald-400" />
+                Cash on Delivery
+              </button>
+
               <p className="text-slate-600 text-xs text-center mt-3">
-                By placing your order, you agree to our Terms of Service and Privacy Policy.
+                By placing your order, you agree to our Terms of Service.
               </p>
             </div>
           </div>

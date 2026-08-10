@@ -12,7 +12,7 @@ import {
 // ── Types ────────────────────────────────────────────────────────────────────
 interface Stats { totalUsers: number; totalOrders: number; totalRevenue: number; pendingOrders: number; }
 interface Order { _id: string; userId: any; products: any[]; address: any; paymentId: string; totalAmount: number; status: string; createdAt: string; }
-interface Product { _id: string; title: string; price: number; wholesalePrice?: number; images: string[]; category: string; subcategory: string; stock: number; description: string; avgRating?: number; }
+interface Product { _id: string; title: string; price: number; wholesalePrice?: number; images: string[]; category: string; subcategory: string; stock: number; description: string; avgRating?: number; sizes?: string[]; colors?: string[]; baseOrderCount?: number; }
 interface Category { _id: string; name: string; subcategories: string[]; }
 interface User { _id: string; name: string; email: string; phone: string; role: string; isBanned: boolean; supercoins: number; createdAt: string; }
 interface Slide { _id: string; title: string; image: string; link: string; }
@@ -180,7 +180,7 @@ export default function AdminPanel() {
   const [uPg, setUPg] = useState(1);
 
   // Product form
-  const [pForm, setPForm] = useState({ title: "", price: "", wholesalePrice: "", description: "", stock: "", category: "", subcategory: "", images: [] as File[] });
+  const [pForm, setPForm] = useState({ title: "", price: "", wholesalePrice: "", description: "", stock: "", category: "", subcategory: "", images: [] as File[], sizes: "", colors: "", baseOrderCount: "0" });
   const [editPId, setEditPId] = useState<string | null>(null);
   const [subcats, setSubcats] = useState<string[]>([]);
 
@@ -252,11 +252,14 @@ export default function AdminPanel() {
         wholesalePrice: pForm.wholesalePrice ? Number(pForm.wholesalePrice) : undefined,
         description: pForm.description, stock: Number(pForm.stock),
         category: pForm.category, subcategory: pForm.subcategory,
+        sizes: pForm.sizes.split(",").map(s => s.trim()).filter(Boolean),
+        colors: pForm.colors.split(",").map(c => c.trim()).filter(Boolean),
+        baseOrderCount: Number(pForm.baseOrderCount) || 0,
         ...(imageUrls.length && { images: imageUrls }),
       };
       if (editPId) { await API.put(`/api/products/${editPId}`, payload); setEditPId(null); }
       else          { await API.post("/api/products", payload); }
-      setPForm({ title: "", price: "", wholesalePrice: "", description: "", stock: "", category: "", subcategory: "", images: [] });
+      setPForm({ title: "", price: "", wholesalePrice: "", description: "", stock: "", category: "", subcategory: "", images: [], sizes: "", colors: "", baseOrderCount: "0" });
       setSubcats([]);
       fetchAll();
     } catch (e: any) { alert(e.response?.data?.message || "Failed to save product"); }
@@ -265,7 +268,7 @@ export default function AdminPanel() {
 
   const editProduct = (p: Product) => {
     setEditPId(p._id);
-    setPForm({ title: p.title, price: String(p.price), wholesalePrice: String(p.wholesalePrice || ""), description: p.description, stock: String(p.stock), category: p.category, subcategory: p.subcategory, images: [] });
+    setPForm({ title: p.title, price: String(p.price), wholesalePrice: String(p.wholesalePrice || ""), description: p.description, stock: String(p.stock), category: p.category, subcategory: p.subcategory, images: [], sizes: (p.sizes || []).join(", "), colors: (p.colors || []).join(", "), baseOrderCount: String(p.baseOrderCount || 0) });
     handleCatChange(p.category);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -274,6 +277,16 @@ export default function AdminPanel() {
     if (!confirm("Delete this product?")) return;
     await API.delete(`/api/products/${id}`);
     fetchAll();
+  };
+
+  const addAdminReview = async (productId: string, comment: string) => {
+    try {
+      await API.post(`/api/products/${productId}/admin-review`, { comment });
+      alert("Admin review added successfully!");
+      fetchAll();
+    } catch (e: any) {
+      alert(e.response?.data?.message || "Failed to add admin review");
+    }
   };
 
   // ── Dropship pricing ───────────────────────────────────────────────────────
@@ -591,13 +604,44 @@ export default function AdminPanel() {
                   </div>
                 </div>
 
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                  <div>
+                    <label className="block text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1.5">Sizes (Comma separated)</label>
+                    <input
+                      value={pForm.sizes}
+                      onChange={e => setPForm(f => ({ ...f, sizes: e.target.value }))}
+                      placeholder="e.g. S, M, L, XL"
+                      className="w-full bg-black/30 border border-white/10 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-orange-500/50 transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1.5">Colors (Comma separated)</label>
+                    <input
+                      value={pForm.colors}
+                      onChange={e => setPForm(f => ({ ...f, colors: e.target.value }))}
+                      placeholder="e.g. Red, Blue, Black"
+                      className="w-full bg-black/30 border border-white/10 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-orange-500/50 transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1.5">Base Order Count</label>
+                    <input
+                      value={pForm.baseOrderCount}
+                      onChange={e => setPForm(f => ({ ...f, baseOrderCount: e.target.value }))}
+                      type="number"
+                      placeholder="e.g. 2000"
+                      className="w-full bg-black/30 border border-white/10 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-orange-500/50 transition-colors"
+                    />
+                  </div>
+                </div>
+
                 <div className="flex gap-3">
                   <button onClick={saveProduct} disabled={loading} className="flex items-center gap-2 bg-orange-500 hover:bg-orange-400 text-white font-bold px-6 py-2.5 rounded-xl text-sm transition-all disabled:opacity-50">
                     {loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Plus className="w-4 h-4" />}
                     {editPId ? "Update Product" : "Add Product"}
                   </button>
                   {editPId && (
-                    <button onClick={() => { setEditPId(null); setPForm({ title: "", price: "", wholesalePrice: "", description: "", stock: "", category: "", subcategory: "", images: [] }); }}
+                    <button onClick={() => { setEditPId(null); setPForm({ title: "", price: "", wholesalePrice: "", description: "", stock: "", category: "", subcategory: "", images: [], sizes: "", colors: "", baseOrderCount: "0" }); }}
                       className="px-6 py-2.5 bg-white/5 hover:bg-white/10 text-slate-400 font-semibold rounded-xl text-sm transition-colors">
                       Cancel
                     </button>
@@ -645,8 +689,9 @@ export default function AdminPanel() {
                           </td>
                           <td className="px-5 py-3">
                             <div className="flex items-center gap-2">
-                              <button onClick={() => editProduct(p)} className="p-1.5 text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
-                              <button onClick={() => deleteProduct(p._id)} className="p-1.5 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                              <button onClick={() => editProduct(p)} className="p-1.5 text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors" title="Edit"><Pencil className="w-3.5 h-3.5" /></button>
+                              <button onClick={() => { const review = prompt("Enter admin review for this product:"); if (review) addAdminReview(p._id, review); }} className="p-1.5 text-emerald-400 hover:bg-emerald-400/10 rounded-lg transition-colors" title="Add Admin Review"><Star className="w-3.5 h-3.5" /></button>
+                              <button onClick={() => deleteProduct(p._id)} className="p-1.5 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors" title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
                             </div>
                           </td>
                         </tr>
